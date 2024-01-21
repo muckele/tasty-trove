@@ -1,0 +1,13 @@
+<%- include('../partials/html-head') %>
+<%- include('../partials/nav') %>
+
+<section>
+  <h1>Recipes! 🌮🌮🌮</h1>
+  <ul>
+    <% recipes.forEach(recipe => { %>
+      <li>🌮 <%= recipe.title %> </li>
+    <% }) %>
+  </ul>
+</section>
+
+<%- include('../partials/footer') %>
