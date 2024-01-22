@@ -21,9 +21,11 @@ function newRecipe(req, res) {
 }
 
 function create(req, res) {
+    req.body.owner = req.user.profile._id
     if (req.body.ingredients) {
         req.body.ingredients = req.body.ingredients.split(', ')
     }
+    console.log(req.body)
     Recipe.create(req.body)
     .then(recipe => {
         res.redirect('/recipes')

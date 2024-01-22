@@ -10,7 +10,7 @@ router.get('/', recipesCtrl.index)
 router.get('/new', recipesCtrl.new)
 // POST /recipes
 router.post('/', isLoggedIn, recipesCtrl.create)
-// GET /taco/:tacoId
+// GET /recipe/:recipeId
 router.get('/:recipeId', recipesCtrl.show)
 // GET /recipes/:recipeId/edit
 
