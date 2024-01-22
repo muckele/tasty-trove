@@ -12,6 +12,7 @@ router.get('/new', recipesCtrl.new)
 router.post('/', isLoggedIn, recipesCtrl.create)
 // GET /taco/:tacoId
 router.get('/:recipeId', recipesCtrl.show)
+// GET /recipes/:recipeId/edit
 
 
 

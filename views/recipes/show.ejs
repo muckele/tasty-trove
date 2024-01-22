@@ -7,9 +7,12 @@
   <h2>Total Time: <%= recipe.totalTime %> </h2>
   <h2>Prep Time: <%= recipe.prepTime %> </h2>
   <h2>Cook Time: <%= recipe.cookTime %> </h2>
+  <% if (recipe.owner.equals(user?.profile._id)) { %>
+    <a href="/recipes/<%= recipe._id %>/edit">
+      <button class="btn">Edit this Recipe 🧑‍🍳🚧</button>
+    </a>
+  <% } %>
 </section>
-<section>
 
-</section>
 
 <%- include('../partials/footer') %>

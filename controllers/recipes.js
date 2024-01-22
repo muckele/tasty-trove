@@ -38,16 +38,16 @@ function show(req, res) {
     Recipe.findById(req.params.tacoId)
     .populate("owner")
     .then(recipe => {
-      res.render('recipes/show', {
-        taco,
+        res.render('recipes/show', {
+        recipe,
         title: "Recipe Show"
-      })
+        })
     })
     .catch(err => {
-      console.log(err)
-      res.redirect('/recipes')
+        console.log(err)
+        res.redirect('/recipes')
     })
-  }
+}
 
 export {
     index, 
