@@ -14,6 +14,10 @@ router.post('/', isLoggedIn, recipesCtrl.create)
 router.get('/:recipeId', recipesCtrl.show)
 // GET /recipes/:recipeId/edit
 router.get('/:recipeId/edit', isLoggedIn, recipesCtrl.edit)
+// PUT /recipes/:recipeId
+router.put('recipes/:recipeId', isLoggedIn, recipesCtrl.update)
+// DELETE /recipes/:recipeId
+router.delete('/recipes/:recipeId', isLoggedIn, recipesCtrl.delete)
 
 
 

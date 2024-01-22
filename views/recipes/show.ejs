@@ -7,6 +7,9 @@
     <a href="/recipes/<%= recipe._id %>/edit">
       <button class="btn">Edit this Recipe 🧑‍🍳🚧</button>
     </a>
+    <form action="/recipes/<%= recipe._id %>?_method=DELETE" method="POST">
+      <button class="btn" type="submit">Delete this recipe 💀</button>
+    </form>
   <% } %>
   <h1><%= recipe.name %> 🌮</h1>
   <h2>Total Time: <%= recipe.totalTime %> </h2>
