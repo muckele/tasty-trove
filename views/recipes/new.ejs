@@ -1,6 +1,6 @@
 <%- include('../partials/html-head') %>
 <link rel="stylesheet" href="/stylesheets/recipes/new.css" />
-<script defer src="/public/javascript/new.js"></script>
+<script defer src="/javascript/new.js"></script>
 <%- include('../partials/nav') %>
 
 <main>
@@ -19,12 +19,16 @@
 
     <div id="dynamic form">
     <label for="preparation-input">Preparation:</label>
-    <ol id="preparation-list" name="preparation">
-        <li><input type="text" name="preparation[]" placeholder="Step 1"></li>
+    <ol id="preparation-list" name="preparation[]">
+      <li><input type="text" name="preparation[]" placeholder="Step 1"></li>
     </ol>
+    <button type="button" id="add-step-button">Add Next Step</button>
     </div>
-    <button type="submit">Create Recipe</button>
   </form>
+  <br>
+  <button type="submit" id="create-recipe-button">Create Recipe</button>
+    
+  
 
 </main>
 

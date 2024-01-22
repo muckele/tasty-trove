@@ -17,3 +17,14 @@ form {
     margin-left: auto;
     font-size: 22px;
   }
+
+  #create-recipe-button {
+    width: 160px;
+    border-radius: 5px;
+    font-size: 22px;
+    text-align: center;
+    margin: auto;
+    display: flex;
+    display: grid;
+
+  }
