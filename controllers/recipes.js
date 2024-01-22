@@ -66,7 +66,7 @@ function edit(req, res) {
 }
 
 function update(req, res) {
-    Recipe.findById(req.params.recipeId)
+    Recipe.findByIdAndUpdate(req.params.recipeId, req.body, {new: true})
     .then(recipe => {
         if (recipe.owner.equals(req.user.profile._id)) {
             recipe.updateOne(req.body)
@@ -79,7 +79,25 @@ function update(req, res) {
     })
     .catch(err => {
         console.log(err)
-        res.redirect(`/recipes`)
+        res.redirect("/recipes")
+    })
+}
+
+function deleteRecipe(req, res) {
+    Recipe.findById(req.params.recipeId)
+    .then(recipe => {
+        if (recipe.owner.equals(req.user.profile._id)) {
+        recipe.deleteOne()
+        .then(() => {
+            res.redirect('/recipes')
+        })
+        } else {
+            throw new Error ('🚫 Not authorized 🚫')
+        }   
+    })
+    .catch(err => {
+        console.log(err)
+        res.redirect('/recipes')
     })
 }
 
@@ -89,5 +107,6 @@ export {
     create, 
     show, 
     edit,
-    update
+    update,
+    deleteRecipe as delete
 }

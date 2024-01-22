@@ -7,7 +7,7 @@
   <h1>Create a New Recipe</h1>
   <form id="new-form" action="/recipes" method="POST">
     <label for="name-input">Name:</label>
-    <input type="text" name="name" id="name-input">
+    <input type="text" name="name" id="name-input" autocomplete="off">
     <label for="total-time-input">Total Time:</label>
     <input type="number" name="totalTime" id="total-time-input">
     <label for="prep-time-input">Prep Time:</label>
@@ -18,15 +18,15 @@
     <input type="text" name="ingredients" id="ingredients-input">
 
     <div id="dynamic form">
-    <label for="preparation-input">Preparation:</label>
+    <span>Preparation:</span>
     <ol id="preparation-list" name="preparation[]">
       <li><input type="text" name="preparation[]" placeholder="Step 1"></li>
     </ol>
     <button type="button" id="add-step-button">Add Next Step</button>
+    <button type="submit" id="create-recipe-button">Create Recipe</button>
     </div>
   </form>
   <br>
-  <button type="submit" id="create-recipe-button">Create Recipe</button>
     
   
 

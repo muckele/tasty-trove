@@ -5,10 +5,10 @@
 
 <h1>Edit Recipe</h1>
 <section>
-  <form id="edit-form" action="/recipes/<%= recipe._id %>" method="POST">
+  <form id="edit-form" action="/recipes/<%= recipe._id %>?_method=PUT" method="POST">
 
     <label for="name-input">Name:</label>
-    <input type="text" name="name" id="name-input" value="<%= recipe.name %>">
+    <input type="text" name="name" id="name-input" value="<%= recipe.name %>" autocomplete="off">
 
     <label for="total-time-input">Total Time:</label>
     <input type="number" name="totalTime" id="total-time-input" value="<%= recipe.totalTime %>">
@@ -22,18 +22,17 @@
     <label for="ingredients-input">Ingredients (separate ingredients with commas):</label>
     <input type="text" name="ingredients" id="ingredients-input" value="<%= recipe.ingredients.join(', ') %>">
 
-    <label for="preparation-input">Preparation:</label>
-    <ol id="preparation-list">
+    <span>Preparation:</span>
+    <ol id="preparation-list" name="preparation[]">
       <% recipe.preparation.forEach(function(step, index) { %>
         <li><input type="text" name="preparation[]" value="<%= step %>"></li>
       <% }) %>
     </ol>
     <button type="button" id="add-step-button">Add Next Step</button>
-
+    <button type="submit" id="save-changes-button">Save Changes</button>
   </form>
 </section>
 
-<button type="submit" id="save-changes-button">Save Changes</button>
 <%- include('../partials/footer') %>
 
 
