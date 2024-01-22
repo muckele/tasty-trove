@@ -5,10 +5,16 @@
 <body>
   <nav>
     <i class="fas fa-book fa-2x"></i>
-    <a 
+    <a
       href="/recipes/new" class=<%= title === 'Create Recipe' ? 'active' : '' %>
     >
       Create Recipe
+    </a>
+    <br>
+    <a
+      href="/recipes" class=<%= title === 'All Recipes' ? 'active' : '' %>
+    >
+      View All Recipes
     </a>
     <% if (user) { %>
       <a href="/auth/logout" class="right">

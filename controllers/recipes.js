@@ -2,10 +2,10 @@ import { Recipe } from '../models/recipe.js'
 
 function index(req, res) {
     Recipe.find({})
-    .then(recipe => {
+    .then(recipes => {
         res.render('recipes/index', {
             recipes,
-            title: "Recipes"
+            title: "All Recipes"
         })
     })
     .catch(err => {
@@ -26,16 +26,32 @@ function create(req, res) {
     }
     Recipe.create(req.body)
     .then(recipe => {
-        res.redirect('/recipes/new')
+        res.redirect('/recipes')
     })
     .catch(err => {
         console.log(err)
-        res.redirect("/recipes.new")
+        res.redirect('/recipes')
     })
 }
+
+function show(req, res) {
+    Recipe.findById(req.params.tacoId)
+    .populate("owner")
+    .then(recipe => {
+      res.render('recipes/show', {
+        taco,
+        title: "Recipe Show"
+      })
+    })
+    .catch(err => {
+      console.log(err)
+      res.redirect('/recipes')
+    })
+  }
 
 export {
     index, 
     newRecipe as new, 
-    create
+    create, 
+    show
 }

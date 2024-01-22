@@ -1,0 +1,15 @@
+<%- include('../partials/html-head') %>
+<%- include('../partials/nav') %>
+
+<section>
+	<p>From the kitchen of <%= recipe.owner.name %>...</p>
+  <h1><%= recipe.name %> 🌮</h1>
+  <h2>Total Time: <%= recipe.totalTime %> </h2>
+  <h2>Prep Time: <%= recipe.prepTime %> </h2>
+  <h2>Cook Time: <%= recipe.cookTime %> </h2>
+</section>
+<section>
+
+</section>
+
+<%- include('../partials/footer') %>

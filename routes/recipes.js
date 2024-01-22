@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import * as recipesCtrl from '../controllers/recipes.js'
+import { isLoggedIn } from '../middleware/middleware.js'
 
 const router = Router()
 
@@ -8,7 +9,9 @@ router.get('/', recipesCtrl.index)
 // GET /recipes/new
 router.get('/new', recipesCtrl.new)
 // POST /recipes
-router.post('/', recipesCtrl.create)
+router.post('/', isLoggedIn, recipesCtrl.create)
+// GET /taco/:tacoId
+router.get('/:recipeId', recipesCtrl.show)
 
 
 
