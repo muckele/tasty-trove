@@ -9,7 +9,7 @@ const recipeSchema = new Schema({
     prepTime: Number,
     cookTime: Number,
     ingredients: [String],
-    preparation: String,
+    preparation: [String],
     owner: {
         type: Schema.Types.ObjectId,
         ref: "Profile"

@@ -8,7 +8,7 @@ router.get('/', recipesCtrl.index)
 // GET /recipes/new
 router.get('/new', recipesCtrl.new)
 // POST /recipes
-// router.post('/', recipesCtrl.create)
+router.post('/', recipesCtrl.create)
 
 
 

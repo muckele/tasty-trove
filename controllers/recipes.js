@@ -20,7 +20,22 @@ function newRecipe(req, res) {
     })
 }
 
+function create(req, res) {
+    if (req.body.ingredients) {
+        req.body.ingredients = req.body.ingredients.split(', ')
+    }
+    Recipe.create(req.body)
+    .then(recipe => {
+        res.redirect('/recipes/new')
+    })
+    .catch(err => {
+        console.log(err)
+        res.redirect("/recipes.new")
+    })
+}
+
 export {
     index, 
-    newRecipe as new
+    newRecipe as new, 
+    create
 }
