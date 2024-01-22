@@ -3,27 +3,31 @@
 
 <section>
   <p>From the kitchen of <%= recipe.owner.name %>...</p>
-  <h1><%= recipe.name %> 🌮</h1>
-  <h2>Total Time: <%= recipe.totalTime %> </h2>
-  <h2>Prep Time: <%= recipe.prepTime %> </h2>
-  <h2>Cook Time: <%= recipe.cookTime %> </h2>
   <% if (recipe.owner.equals(user?.profile._id)) { %>
     <a href="/recipes/<%= recipe._id %>/edit">
       <button class="btn">Edit this Recipe 🧑‍🍳🚧</button>
     </a>
   <% } %>
+  <h1><%= recipe.name %> 🌮</h1>
+  <h2>Total Time: <%= recipe.totalTime %> </h2>
+  <h2>Prep Time: <%= recipe.prepTime %> </h2>
+  <h2>Cook Time: <%= recipe.cookTime %> </h2>
+  <div></div>
 
-  <div id="dynamic form">
-    <label for="ingredients-input">Ingredients:</label>
-    <p><%= recipe.ingredients.join(', ') %></p>
+  <h2>Ingredients: </h2>
+  <ul>
+    <% recipe.ingredients.forEach(function(ingredient, index) { %>
+      <li><%= ingredient %></li>
+    <% }) %>
+  </ul>
 
-    <label for="preparation-input">Preparation:</label>
-    <ol>
-      <% recipe.preparation.forEach(function(step, index) { %>
-        <li><%= step %></li>
-      <% }); %>
-    </ol>
-  </div>
+  <h2>Preparation:</h2>
+  <ol>
+    <% recipe.preparation.forEach(function(step, index) { %>
+      <li><%= step %></li>
+    <% }) %>
+  </ol>
 </section>
 
 <%- include('../partials/footer') %>
+
