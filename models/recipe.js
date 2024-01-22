@@ -1,11 +1,14 @@
-import mongoose from "mongoose"
+import mongoose from 'mongoose'
 
 const Schema = mongoose.Schema
 
-const recipeSchema = newSchema({
-    title: String,
+const recipeSchema = new Schema({
+    name: String,
     imageUrl: String,
-    ingredients: String,
+    totalTime: Number,
+    prepTime: Number,
+    cookTime: Number,
+    ingredients: [String],
     preparation: String,
     owner: {
         type: Schema.Types.ObjectId,

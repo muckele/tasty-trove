@@ -4,6 +4,12 @@
 </head>
 <body>
   <nav>
+    <i class="fas fa-book fa-2x"></i>
+    <a 
+      href="/recipes/new" class=<%= title === 'Create Recipe' ? 'active' : '' %>
+    >
+      Create Recipe
+    </a>
     <% if (user) { %>
       <a href="/auth/logout" class="right">
         <button type="submit">Logout</button>
