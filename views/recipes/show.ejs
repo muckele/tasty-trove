@@ -55,35 +55,61 @@
 
 <% if (recipe.reviews.length) { %>
   <table>
+
     <thead>
       <tr>
-        <th>Date</th>
         <th>Review</th>
         <th>Rating</th>
-        
+        <th>Date</th>
+        <th>Actions</th>
       </tr>
     </thead>
+
     <tbody>
       <% let total = 0 %>
       <% recipe.reviews.forEach(function(review) { %>
-        <% total += review.rating %>
-        <tr>
-          <td><%= review.createdAt.toLocaleDateString() %></td>
-          <td><%= review.content %></td>
-          <td><%= review.rating %></td>
 
+        <tr>
+          <td>
+            <% if (review.content) { %>
+              <%= review.content %>
+              <% if (review.author && review.author.name) { %>
+                - <%= review.author.name %>
+              <% } %>
+            <% } %>
+          </td>
+          <td><%= review.rating %></td>
+          <td><%= review.createdAt.toLocaleDateString() %></td>
+          <td>
+            <% if (review.author && review.author.equals(user?.profile._id)) { %>
+              <form action="/recipes/<%= recipe._id %>/reviews/<%= review._id %>?_method=DELETE" method="POST" style="display: inline;">
+                <button class="btn edit-btn">🗑️</button>
+              </form>
+              <a href="/recipes/<%= recipe._id %>/reviews/<%= review._id %>/edit" style="text-decoration: none;">
+                <button class="btn edit-btn">📝</button>
+              </a>
+            <% } %>
+          </td>
         </tr>
+
+        <% total += review.rating %>
       <% }) %>
-      
-      <% const averageRating = total / recipe.reviews.length %>
+
+
       <tr>
-        <td colspan="2">Average Rating:</td>
-        <td><%= averageRating.toFixed(2) %></td>
+        <td colspan="3">Average Rating:</td>
+        <td><%= (recipe.reviews.length > 0) ? (total / recipe.reviews.length).toFixed(2) : 'N/A' %></td>
       </tr>
     </tbody>
   </table>
 <% } else { %>
   <h3>Leave a Review</h3>
 <% } %>
+
+
+
+
+
+
 
 <%- include('../partials/footer') %>
