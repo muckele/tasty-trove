@@ -16,6 +16,12 @@ router.post('/:recipeId/reviews', isLoggedIn, recipesCtrl.createReview)
 router.get('/:recipeId', recipesCtrl.show)
 // GET /recipes/:recipeId/edit
 router.get('/:recipeId/edit', isLoggedIn, recipesCtrl.edit)
+// GET /recipes/:recipeId/reviews/:reviewId/edit
+router.get(
+  '/:recipeId/reviews/:reviewId/edit',
+  isLoggedIn, 
+  recipesCtrl.editReview
+)
 // PUT /recipes/:recipeId
 router.put('/:recipeId', isLoggedIn, recipesCtrl.update)
 // DELETE /recipes/:recipeId

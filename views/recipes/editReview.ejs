@@ -1,0 +1,26 @@
+<%- include('../partials/html-head') %>
+<%- include('../partials/nav') %>
+
+<section>
+  <h1>Edit your review!</h1>
+  <form 
+    action="/recipes/<%= recipe._id %>/reviews/<%= review._id %>?_method=PUT"
+    method="POST"
+  >
+    <label for="content-textarea">Review:</label>
+    <textarea name="content" id="content-textarea"><%= review.content %></textarea>
+    
+    <label for="rating-select">Rating:</label>
+    <select name="rating" id="rating-select">
+      <option value="1" <%= (review.rating === 1) ? 'selected' : '' %>>1</option>
+      <option value="2" <%= (review.rating === 2) ? 'selected' : '' %>>2</option>
+      <option value="3" <%= (review.rating === 3) ? 'selected' : '' %>>3</option>
+      <option value="4" <%= (review.rating === 4) ? 'selected' : '' %>>4</option>
+      <option value="5" <%= (review.rating === 5) ? 'selected' : '' %>>5</option>
+    </select>
+    
+    <button type="submit">Update Review</button>
+  </form>
+</section>
+
+<%- include('../partials/footer') %>

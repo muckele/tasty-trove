@@ -31,6 +31,7 @@
     <% }) %>
   </ol>
 </section>
+
 <h2>Reviews</h2>
 <% if (user) { %>
   <h3>Leave a Review</h3>
@@ -39,7 +40,6 @@
     action="/recipes/<%= recipe._id %>/reviews"
     method="POST"
   >
-    <label for="content-textarea">Review:</label>
     <textarea name="content" id="content-textarea"></textarea>
     <label for="rating-select">Rating:</label>
     <select name="rating" id="rating-select">
@@ -49,13 +49,14 @@
       <option value="4">4</option>
       <option value="5" selected>5</option>
     </select>
-    <button type="submit">Add Review</button>
+    <button type="submit" class="btn">Add Review</button>
   </form>
+<% } else { %>
+  <p>Please log in to leave a review.</p>
 <% } %>
 
 <% if (recipe.reviews.length) { %>
   <table>
-
     <thead>
       <tr>
         <th>Review</th>
@@ -64,29 +65,17 @@
         <th>Actions</th>
       </tr>
     </thead>
-
     <tbody>
       <% let total = 0 %>
       <% recipe.reviews.forEach(function(review) { %>
-
         <tr>
-          <td>
-            <% if (review.content) { %>
-              <%= review.content %>
-              <% if (review.author && review.author.name) { %>
-                - <%= review.author.name %>
-              <% } %>
-            <% } %>
-          </td>
+          <td><%= review.content %> - <%= review.author.name %></td>
           <td><%= review.rating %></td>
           <td><%= review.createdAt.toLocaleDateString() %></td>
           <td>
-            <% if (review.author && review.author.equals(user?.profile._id)) { %>
-              <form action="/recipes/<%= recipe._id %>/reviews/<%= review._id %>?_method=DELETE" method="POST" style="display: inline;">
-                <button class="btn edit-btn">🗑️</button>
-              </form>
-              <a href="/recipes/<%= recipe._id %>/reviews/<%= review._id %>/edit" style="text-decoration: none;">
-                <button class="btn edit-btn">📝</button>
+            <% if (review.author.equals(user?.profile._id)) { %>
+              <a href="/recipes/<%= recipe._id %>/reviews/<%= review._id %>/edit">
+                <button class="btn">Edit Review</button>
               </a>
             <% } %>
           </td>
@@ -94,8 +83,6 @@
 
         <% total += review.rating %>
       <% }) %>
-
-
       <tr>
         <td colspan="3">Average Rating:</td>
         <td><%= (recipe.reviews.length > 0) ? (total / recipe.reviews.length).toFixed(2) : 'N/A' %></td>
@@ -103,13 +90,7 @@
     </tbody>
   </table>
 <% } else { %>
-  <h3>Leave a Review</h3>
+  <p>No reviews yet. Be the first to leave a review!</p>
 <% } %>
-
-
-
-
-
-
 
 <%- include('../partials/footer') %>

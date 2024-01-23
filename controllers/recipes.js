@@ -108,11 +108,7 @@ function createReview(req, res) {
     Recipe.findById(req.params.recipeId)
     .then(recipe => {
         req.body.author = req.user.profile._id
-        const review = {
-            content: req.body.content,
-            rating: req.body.rating
-        }
-        recipe.reviews.push(review)
+        recipe.reviews.push(req.body)
         recipe.save()
         .then(() => {
             res.redirect(`/recipes/${recipe._id}`)
@@ -128,6 +124,26 @@ function createReview(req, res) {
     })
 }
 
+function editReview(req, res) {
+    Recipe.findById(req.params.recipeId)
+    .then(recipe => {
+        const review = recipe.reviews.id(req.params.reviewId)
+        if (comment.author.equals(req.user.profile._id)) {
+            res.render('recipes/editReview', {
+                recipe, 
+                review,
+                title: 'Update Review'
+            })
+        } else {
+            throw new Error('🚫 Not authorized 🚫')
+        }
+    })
+    .catch(err => {
+        console.log(err)
+        res.redirect('/recipes')
+    })
+}
+
 export {
     index, 
     newRecipe as new, 
@@ -136,5 +152,6 @@ export {
     edit,
     update,
     deleteRecipe as delete,
-    createReview
+    createReview, 
+    editReview
 }
