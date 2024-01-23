@@ -10,6 +10,8 @@ router.get('/', recipesCtrl.index)
 router.get('/new', recipesCtrl.new)
 // POST /recipes
 router.post('/', isLoggedIn, recipesCtrl.create)
+// POST /recipes/:recipeId/reviews
+router.post('/:recipeId/reviews', isLoggedIn, recipesCtrl.createReview)
 // GET /recipe/:recipeId
 router.get('/:recipeId', recipesCtrl.show)
 // GET /recipes/:recipeId/edit

@@ -101,6 +101,26 @@ function deleteRecipe(req, res) {
     })
 }
 
+function createReview(req, res) {
+    Recipe.findById(req.params.recipeId)
+    .then(recipe => {
+        req.body.author = req.user.profile._id
+        recipe.reviews.push(req.body)
+        recipe.save()
+        .then(() => {
+            res.redirect(`/recipes/${recipe._id}`)
+        })
+        .catch(err => {
+            console.log(err)
+            res.redirect('/recipes')
+        })
+    })
+    .catch(err => {
+        console.log(err)
+        res.redirect('/recipes')
+    })
+}
+
 export {
     index, 
     newRecipe as new, 
@@ -108,5 +128,6 @@ export {
     show, 
     edit,
     update,
-    deleteRecipe as delete
+    deleteRecipe as delete,
+    createReview
 }
