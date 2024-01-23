@@ -38,7 +38,10 @@ function create(req, res) {
 
 function show(req, res) {
     Recipe.findById(req.params.recipeId)
-    .populate("owner")
+    .populate([
+        {path: "owner"},
+        {path: "reviews.author"}
+    ])
     .then(recipe => {
         res.render('recipes/show', {
         recipe,
@@ -105,7 +108,11 @@ function createReview(req, res) {
     Recipe.findById(req.params.recipeId)
     .then(recipe => {
         req.body.author = req.user.profile._id
-        recipe.reviews.push(req.body)
+        const review = {
+            content: req.body.content,
+            rating: req.body.rating
+        }
+        recipe.reviews.push(review)
         recipe.save()
         .then(() => {
             res.redirect(`/recipes/${recipe._id}`)
