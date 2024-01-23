@@ -29,7 +29,11 @@ router.put('/:recipeId/reviews/:reviewId', isLoggedIn, recipesCtrl.updateReview)
 // DELETE /recipes/:recipeId
 router.delete('/:recipeId', isLoggedIn, recipesCtrl.delete)
 // DELETE recipes/:recipeId/reviews/:reviewId
-router.delete('/recipeId/reviews/:reviewId', isLoggedIn, recipesCtrl.deleteReview)
+router.delete(
+  '/:recipeId/reviews/:reviewId',
+  isLoggedIn, 
+  recipesCtrl.deleteReview
+)
 
 
 

@@ -1,4 +1,5 @@
 <%- include('../partials/html-head') %>
+<link rel="stylesheet" href="/stylesheets/recipes/show.css">
 <%- include('../partials/nav') %>
 
 <section>
@@ -11,7 +12,7 @@
       <button class="btn" type="submit">Delete this recipe 💀</button>
     </form>
   <% } %>
-  <h1><%= recipe.name %> 🌮</h1>
+  <h1><%= recipe.name %></h1>
   <h2>Total Time: <%= recipe.totalTime %> </h2>
   <h2>Prep Time: <%= recipe.prepTime %> </h2>
   <h2>Cook Time: <%= recipe.cookTime %> </h2>
@@ -88,10 +89,10 @@
 
         <% total += review.rating %>
       <% }) %>
-      <tr>
+      <span class="average-rating">
         <td colspan="3">Average Rating:</td>
         <td><%= (recipe.reviews.length > 0) ? (total / recipe.reviews.length).toFixed(2) : 'N/A' %></td>
-      </tr>
+      </span>
     </tbody>
   </table>
 <% } else { %>

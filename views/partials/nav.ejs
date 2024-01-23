@@ -1,41 +1,46 @@
+<link rel="stylesheet" href="/stylesheets/nav.css" />
   <% if (!user) { %>
     <script defer src="https://accounts.google.com/gsi/client"></script>
   <% } %>
 </head>
 <body>
   <nav>
-    <i class="fas fa-chef fa-2x"></i>
-    <a
-      href="/recipes/new" class=<%= title === 'Create Recipe' ? 'active' : '' %>
-    >
+    <div class="logo-container">
+      <i class="fas fa-chef fa-2x"></i>
+    </div>
+
+    <div class="user-actions">
+      <% if (user) { %>
+        <a href="/auth/logout">
+          <button type="submit">Logout</button>
+        </a>
+      <% } else { %>
+        <div 
+          id="g_id_onload" 
+          data-client_id="<%= googleClientID %>" 
+          data-login_uri="/auth/google"
+          data-auto_prompt="false" 
+          data-prompt_parent_id="g_id_onload"
+        ></div>
+        <div 
+          class="g_id_signin" 
+          data-type="standard" 
+          data-size="large" 
+          data-theme="outline"
+          data-text="sign_in_with" 
+          data-shape="rectangular" 
+          data-logo_alignment="left"
+          ></div>
+      <% } %>
+    </div>
+
+    <div class="recipe-links">
+      <a href="/recipes/new" class=<%=title==='Create Recipe' ? 'active' : '' %>>
       Create Recipe
-    </a>
-    <br>
-    <a
-      href="/recipes" class=<%= title === 'All Recipes' ? 'active' : '' %>
-    >
-      View All Recipes
-    </a>
-    <% if (user) { %>
-      <a href="/auth/logout" class="right">
-        <button type="submit">Logout</button>
       </a>
-    <% } else { %>
-      <div 
-        id="g_id_onload"
-        data-client_id="<%= googleClientID %>"
-        data-login_uri="/auth/google"
-        data-auto_prompt="false"
-        data-prompt_parent_id="g_id_onload"
-      ></div>
-      <div 
-        class="g_id_signin right"
-        data-type="standard"
-        data-size="large"
-        data-theme="outline"
-        data-text="sign_in_with"
-        data-shape="rectangular"
-        data-logo_alignment="left"
-      ></div>
-    <% } %>
+      <a href="/recipes" class=<%=title==='All Recipes' ? 'active' : '' %>>
+      View All Recipes
+      </a>
+    </div>
   </nav>
+

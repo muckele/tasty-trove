@@ -1,0 +1,42 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  background-color: #333;
+  color: white;
+}
+
+.logo-container {
+  margin-right: 10px;
+}
+
+.user-actions,
+.recipe-links {
+  display: flex;
+  align-items: center;
+}
+
+.user-actions {
+  margin-right: auto;
+  /* Push the user actions to the left by using auto margin */
+}
+
+.user-actions button {
+  margin-left: 10px;
+}
+
+.recipe-links a {
+  margin-left: 20px;
+  text-decoration: none;
+  color: white;
+}
+
+.recipe-links a.active {
+  font-weight: bold;
+}

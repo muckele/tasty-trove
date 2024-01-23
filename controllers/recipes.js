@@ -171,16 +171,16 @@ function updateReview(req, res) {
 function deleteReview(req, res) {
     Recipe.findById(req.params.recipeId)
     .then(recipe => {
-        const review = recipe.review.id(req.params.reviewId)
+        const review = recipe.reviews.id(req.params.reviewId)
         if (review.author.equals(req.user.profile._id)) {
-            recipe.comments.remove(review)
+            recipe.reviews.remove(review)
             recipe.save()
             .then(() => {
                 res.redirect(`/recipes/${recipe._id}`)
             })
             .catch(err => {
                 console.log(err)
-                res.redirect('/tacos')
+                res.redirect('/recipes')
             })
         } else {
             throw new Error('🚫 Not authorized 🚫')
@@ -188,7 +188,7 @@ function deleteReview(req, res) {
     })
     .catch(err => {
         console.log(err)
-        res.redirect('/tacos')
+        res.redirect('/recipes')
     })
 }
 
