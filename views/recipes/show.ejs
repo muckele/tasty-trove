@@ -60,6 +60,7 @@
     <thead>
       <tr>
         <th>Review</th>
+        <th>Reviewer</th>
         <th>Rating</th>
         <th>Date</th>
         <th>Actions</th>
@@ -69,13 +70,17 @@
       <% let total = 0 %>
       <% recipe.reviews.forEach(function(review) { %>
         <tr>
-          <td><%= review.content %> - <%= review.author.name %></td>
+          <td><%= review.content %></td>
+          <td><%= review.author.name %></td>
           <td><%= review.rating %></td>
           <td><%= review.createdAt.toLocaleDateString() %></td>
           <td>
             <% if (review.author.equals(user?.profile._id)) { %>
+              <form action="/recipes/<%= recipe._id %>/reviews/<%= review._id %>?_method=DELETE" method="POST">
+                <button class="btn edit-btn">🗑️</button>
+              </form>
               <a href="/recipes/<%= recipe._id %>/reviews/<%= review._id %>/edit">
-                <button class="btn">Edit Review</button>
+                <button class="btn edit-btn">📝</button>
               </a>
             <% } %>
           </td>

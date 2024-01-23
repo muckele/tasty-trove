@@ -24,8 +24,12 @@ router.get(
 )
 // PUT /recipes/:recipeId
 router.put('/:recipeId', isLoggedIn, recipesCtrl.update)
+// PUT recipes/:recipeId/reviews/:reviewId
+router.put('/:recipeId/reviews/:reviewId', isLoggedIn, recipesCtrl.updateReview)
 // DELETE /recipes/:recipeId
 router.delete('/:recipeId', isLoggedIn, recipesCtrl.delete)
+// DELETE recipes/:recipeId/reviews/:reviewId
+router.delete('/recipeId/reviews/:reviewId', isLoggedIn, recipesCtrl.deleteReview)
 
 
 

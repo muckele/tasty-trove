@@ -128,7 +128,7 @@ function editReview(req, res) {
     Recipe.findById(req.params.recipeId)
     .then(recipe => {
         const review = recipe.reviews.id(req.params.reviewId)
-        if (comment.author.equals(req.user.profile._id)) {
+        if (review.author.equals(req.user.profile._id)) {
             res.render('recipes/editReview', {
                 recipe, 
                 review,
@@ -144,6 +144,54 @@ function editReview(req, res) {
     })
 }
 
+function updateReview(req, res) {
+    Recipe.findById(req.params.recipeId)
+    .then(recipe => {
+        const review = recipe.reviews.id(req.params.reviewId)
+        if (review.author.equals(req.user.profile._id)) {
+            review.set(req.body)
+            recipe.save()
+        .then(() => {
+            res.redirect(`/recipes/${recipe._id}`)
+        })
+        .catch(err => {
+            console.log(err)
+            res.redirect('/recipes')
+        })
+    } else {
+        throw new Error('🚫 Not authorized 🚫')
+    }
+    })
+    .catch(err => {
+        console.log(err)
+        res.redirect('/recipes')
+    })
+}
+
+function deleteReview(req, res) {
+    Recipe.findById(req.params.recipeId)
+    .then(recipe => {
+        const review = recipe.review.id(req.params.reviewId)
+        if (review.author.equals(req.user.profile._id)) {
+            recipe.comments.remove(review)
+            recipe.save()
+            .then(() => {
+                res.redirect(`/recipes/${recipe._id}`)
+            })
+            .catch(err => {
+                console.log(err)
+                res.redirect('/tacos')
+            })
+        } else {
+            throw new Error('🚫 Not authorized 🚫')
+        }
+    })
+    .catch(err => {
+        console.log(err)
+        res.redirect('/tacos')
+    })
+}
+
 export {
     index, 
     newRecipe as new, 
@@ -153,5 +201,7 @@ export {
     update,
     deleteRecipe as delete,
     createReview, 
-    editReview
+    editReview, 
+    updateReview, 
+    deleteReview
 }
