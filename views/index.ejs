@@ -1,19 +1,32 @@
 <%- include('./partials/html-head') %>
-<link rel="stylesheet" href="/stylesheets/recipes/index.css">
+<link rel="stylesheet" href="/stylesheets/index.css">
 <%- include('./partials/nav') %>
 
 <main>
-  <h1>Hello, <%= user ? user.profile.name : "chef!" %></h1>
-  <% if (user?.profile.avatar) { %>
-    <div>
-      <img
-        src="<%= user.profile.avatar %>"
-        alt="<%= user.profile.name %> avatar"
-      />
-    </div>
-  <% } %>
+  <div class="welcome-section">
+    <h1>Hello, <%= user ? user.profile.name : "Chef!" %>
+    </h1>
+    <% if (user?.profile.avatar) { %>
+      <div class="avatar-container">
+        <img src="<%= user.profile.avatar %>" alt="<%= user.profile.name %> avatar" />
+      </div>
+    <% } %>
+  </div>
+  <div id="welcome-message">
+    <p>Indulge your taste buds in a culinary adventure with Tasty Trove, your go-to destination
+      for delicious recipes that ignite the chef in you! From mouthwatering mains to irresistible desserts, we've curated a collection that promises to elevate your cooking experience.
+      <br>
+      <br>
+      Explore, cook, and savor the joy of creating culinary wonders. Get ready to embark on a flavorsome journey!
+      <br>
+      <br>
+      Happy Cooking! 🍽️✨
+    </p>
+  </div>
+  <hr>
+  <div class="logo-section">
+    <img id="logo" src="/assets/images/logo-images/logo.png" alt="Title Image">
+  </div>
 
-  <img id="logo" src="/assets/images/logo-images/logo.png" alt="Title Image">
 </main>
-
 <%- include('./partials/footer') %>
