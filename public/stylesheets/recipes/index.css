@@ -35,6 +35,12 @@ h1 {
   margin: 0 auto;
 }
 
+#welcome-message {
+  color: #333;
+  font-size: 28px;
+  margin-top: 0;
+}
+
 .logo-section {
   margin-top: 20px;
 }
