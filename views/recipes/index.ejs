@@ -1,29 +1,21 @@
-<%- include('../partials/html-head') %>
-<link rel="stylesheet" href="/stylesheets/recipes/index.css">
-<%- include('../partials/nav') %>
+<%- include('./partials/html-head') %>
+  <%- include('./partials/nav') %>
 
-<main>
-  <h1>Recipe List</h1>
-  <table id="list">
-    <thead>
-      <tr>
-        <th>Recipe Name</th>
-        <th>Total Time</th>
-        <th></th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      <% recipes.forEach((recipe) => { %>
-      <tr>
-        <td><%= recipe.name %></td>
-        <td><%= recipe.totalTime %></td>
-        <td><a href="/recipes/<%= recipe._id %>">View Recipe</a></td>
-        <td></td>
-      </tr>
-      <% }) %>
-    </tbody>
-  </table>
-</main>
+    <main>
+      <div class="welcome-section">
+        <h1>Hello, <%= user ? user.profile.name : "Chef!" %>
+        </h1>
+        <% if (user?.profile.avatar) { %>
+          <div class="avatar-container">
+            <img src="<%= user.profile.avatar %>" alt="<%= user.profile.name %> avatar" />
+          </div>
+          <% } %>
+      </div>
 
-<%- include('../partials/footer') %>
+      <div class="logo-section">
+        <img id="logo" src="/assets/images/logo-images/logo.png" alt="Title Image">
+      </div>
+    </main>
+
+    <%- include('./partials/footer') %>
+

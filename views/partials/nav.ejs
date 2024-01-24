@@ -1,12 +1,18 @@
 <link rel="stylesheet" href="/stylesheets/nav.css" />
-  <% if (!user) { %>
-    <script defer src="https://accounts.google.com/gsi/client"></script>
-  <% } %>
+<% if (!user) { %>
+  <script defer src="https://accounts.google.com/gsi/client"></script>
+<% } %>
 </head>
+
 <body>
   <nav>
-    <div class="logo-container">
-      <i class="fas fa-chef fa-2x"></i>
+    <div class="recipe-links">
+      <a href="/recipes/new" class=<%=title==='Create Recipe' ? 'active' : '' %>>
+        Create Recipe
+      </a>
+      <a href="/recipes" class=<%=title==='All Recipes' ? 'active' : '' %>>
+        View All Recipes
+      </a>
     </div>
 
     <div class="user-actions">
@@ -29,18 +35,9 @@
           data-theme="outline"
           data-text="sign_in_with" 
           data-shape="rectangular" 
-          data-logo_alignment="left"
-          ></div>
+          data-logo_alignment="right"></div>
       <% } %>
     </div>
-
-    <div class="recipe-links">
-      <a href="/recipes/new" class=<%=title==='Create Recipe' ? 'active' : '' %>>
-      Create Recipe
-      </a>
-      <a href="/recipes" class=<%=title==='All Recipes' ? 'active' : '' %>>
-      View All Recipes
-      </a>
-    </div>
   </nav>
+
 
