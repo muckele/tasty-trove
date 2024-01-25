@@ -9,28 +9,36 @@ main {
   max-width: 800px;
   margin: 20px auto;
   padding: 20px;
-  background-color: #fff;
+  background-color:  #c57f1e;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
-  color: #333;
+  color: #0b0454;
+  margin-bottom: 20px;
+  text-align: center;
+
 }
 
 form {
   display: flex;
   flex-direction: column;
+  background-color: #0b0454;
+  color: #fff;
+  padding: 20px;
+  border-radius: 8px;
 }
 
 label {
   margin-top: 10px;
   margin-bottom: 5px;
-  color: #333;
 }
 
 input {
   padding: 10px;
   margin-bottom: 10px;
+  background-color: #fff;
+  color: #0b0454;
 }
 
 ol {
@@ -47,18 +55,30 @@ li {
   padding: 10px;
 }
 
-#add-step-button {
-  background-color: #4caf50;
+#create-recipe-button {
+  background-color: #c57f1e;
   color: #fff;
   border: none;
   padding: 10px 15px;
   cursor: pointer;
   font-size: 16px;
+  margin: 0 auto;
+  display: block;
+}
+
+#add-step-button {
+  background-color:  #c57f1e;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-right: 10px;
 }
 
 #add-step-button:hover,
 #create-recipe-button:hover {
-  background-color: #45a049;
+  background-color: darkslategrey;
 }
 
 #dynamic-form {
@@ -71,13 +91,4 @@ span {
 
 #add-step-button {
   margin-right: 10px;
-}
-
-#create-recipe-button {
-  background-color: #4caf50;
-  color: #fff;
-  border: none;
-  padding: 10px 15px;
-  cursor: pointer;
-  font-size: 16px;
 }

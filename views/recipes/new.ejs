@@ -8,8 +8,8 @@
   <form id="new-form" action="/recipes" method="POST">
     <label for="name-input">Name:</label>
     <input type="text" name="name" id="name-input" autocomplete="off">
-    <label for="image-input">Picture:</label>
-    <input type="file" name="imageUrl" id="image-input" placeholder="upload a file">
+    <label for="image-input">Picture URL:</label>
+    <input type="url" name="imageUrl" id="image-input" placeholder="https://example.com" pattern="https://.*" size="30">
     <label for="total-time-input">Total Time:</label>
     <input type="number" name="totalTime" id="total-time-input">
     <label for="prep-time-input">Prep Time:</label>
@@ -19,7 +19,7 @@
     <label for="ingredients-input">Ingredients (separate ingredients with commas):</label>
     <input type="text" name="ingredients" id="ingredients-input">
 
-    <div id="dynamic form">
+    <div id="dynamic-form">
     <span>Preparation:</span>
     <ol id="preparation-list" name="preparation[]">
       <li><input type="text" name="preparation[]" placeholder="Step 1"></li>
@@ -28,7 +28,6 @@
     <button type="submit" id="create-recipe-button">Create Recipe</button>
     </div>
   </form>
-  <br>
     
   
 
