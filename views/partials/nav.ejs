@@ -1,18 +1,33 @@
 <link rel="stylesheet" href="/stylesheets/nav.css" />
 <% if (!user) { %>
   <script defer src="https://accounts.google.com/gsi/client"></script>
+  <script src="https://kit.fontawesome.com/10dd83805c.js" crossorigin="anonymous"></script>
+  <script defer src="/javascript/nav.js"></script>
 <% } %>
 </head>
 
 <body>
-  <nav>
-    <div class="recipe-links">
-      <a href="/recipes/new" class=<%=title==='Create Recipe' ? 'active' : '' %>>
-        Create Recipe
-      </a>
-      <a href="/recipes" class=<%=title==='All Recipes' ? 'active' : '' %>>
-        View All Recipes
-      </a>
+  <nav class="navbar">
+    <div class="nav-center">
+      <div class="nav-header">
+        <a href="/" class="nav-logo">
+          <img src="/assets/images/logo-images/logo.png" alt="Tasty Trove">
+        </a>
+        <button type="button" class="nav-btn">
+          <i class="fas fa-align-justify"></i>
+        </button>
+      </div>
+      <div class="nav-links show-links">
+        <a href="/" class="nav-link">
+          Home
+        </a>
+        <a href="/recipes/new" class="nav-link">
+          Create Recipe
+        </a>
+        <a href="/recipes" class="nav-link">
+          View All Recipes
+        </a>
+      </div>
     </div>
 
     <div class="user-actions">

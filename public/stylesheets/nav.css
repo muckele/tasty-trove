@@ -1,47 +1,113 @@
-body {
-  margin: 0;
-  padding: 0;
-}
 
-nav {
+.navbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 10px;
-  background-color: #0b0454;
-  color: white;
 }
 
-.recipe-links {
+.nav-center {
+  width: 90vw;
+  max-width: 1120px;
+  display: flex;
+  align-items: center;
+
+}
+
+.nav-header {
+  height: 6rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-logo {
   display: flex;
   align-items: center;
 }
 
-.recipe-links a {
-  margin-right: 20px;
-  text-decoration: none;
-  color: white;
-  font-size: 16px;
+.nav-logo img {
+  height: 25%;
+  width: 25%;
 }
 
-.recipe-links a.active {
-  font-weight: bold;
+
+
+.nav-btn {
+  padding: 0.15rem 0.75rem;
 }
 
-#website-name {
+.nav-btn i {
+  font-size: 1.25rem;
+  align-items: right;
+}
+
+.nav-links {
   display: flex;
-  margin: auto;
-  font-size: 24px;
-  text-align: center;
+  flex-direction: column;
+  height: 0;
+  overflow: hidden;
+  transition: all 1s ease-out;
+
 }
+.nav-link {
+  display: block;
+  text-align: center;
+  text-transform: capitalize;
+  color: white;
+  letter-spacing: normal;
+  padding: 1rem 0;
+  border-top: 1px solid white;
+  transition: all 1s ease-out;
+}
+
+.nav-link:hover {
+  color: blue
+}
+
+.show-links {
+  height: 310px
+}
+
+@media screen and (min-width:992px) {
+  .nav-btn {
+    display: none;
+  }
+  .navbar {
+    height: 6rem;
+  }
+  .nav-center {
+    display: flex;
+    align-items: center;
+  }
+  .nav-header {
+    height: auto;
+    margin-right: 2rem;
+  }
+  .nav-links {
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+
+  }
+  .nav-link {
+    padding: 0;
+    border-top: none;
+    margin-right: 1rem;
+    font-size: 1rem;
+  }
+}
+
+
 
 .user-actions {
   display: flex;
   align-items: center;
-  margin-left: auto;
+  margin-right: auto;
 }
 
 .user-actions button {
-  margin-left: 10px;
+  margin-right: 0;
   font-size: 16px;
 }
