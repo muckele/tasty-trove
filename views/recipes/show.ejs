@@ -4,7 +4,7 @@
 
 <section>
   <p>From the kitchen of <%= recipe.owner.name %>...</p>
-  <img src="" alt="">
+  <img src="<%= recipe.imageUrl %>" alt="<%= recipe.name %>">
   <h1><%= recipe.name %></h1>
   <h2>Total Time: <%= recipe.totalTime %> </h2>
   <h2>Prep Time: <%= recipe.prepTime %> </h2>
