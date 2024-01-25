@@ -1,24 +1,21 @@
 <%- include('../partials/html-head') %>
-  <link rel="stylesheet" href="/stylesheets/recipes/index.css">
-  <%- include('../partials/nav') %>
+<link rel="stylesheet" href="/stylesheets/recipes/index.css">
+<%- include('../partials/nav') %>
 
-    <section>
-      <h1 class="section-heading">Recipe List</h1>
-      <div class="recipe-grid">
-        <% recipes.forEach((recipe)=> { %>
-          <div class="recipe-tile">
-            <img src="<%= recipe.imageUrl %>" alt="<%= recipe.name %>">
-            <h2>
-              <%= recipe.name %>
-            </h2>
-            <p>Total Time: <%= recipe.totalTime %>
-            </p>
-            <a href="/recipes/<%= recipe._id %>">View Recipe</a>
-          </div>
-          <% }) %>
+<section>
+  <h1 class="section-heading">Recipe List</h1>
+  <div class="recipe-grid">
+    <% recipes.forEach((recipe)=> { %>
+      <div class="recipe-tile">
+      <img src="<%= recipe.imageUrl %>" alt="<%= recipe.name %>">
+      <h2><%= recipe.name %></h2>
+      <p>Total Time: <%= recipe.totalTime %></p>
+        <a href="/recipes/<%= recipe._id %>">View Recipe</a>
       </div>
-    </section>
+    <% }) %>
+  </div>
+</section>
 
-    <%- include('../partials/footer') %>
+<%- include('../partials/footer') %>
 
 
