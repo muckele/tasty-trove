@@ -29,14 +29,18 @@
 }
 
 .nav-logo img {
-  height: 25%;
-  width: 25%;
+  height: 100px;
+  width: auto;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 
 
 .nav-btn {
-  padding: 0.15rem 0.75rem;
+  background-color: #c57f1e;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
 }
 
 .nav-btn i {
@@ -58,10 +62,11 @@
   text-transform: capitalize;
   color: #c57f1e;
   letter-spacing: normal;
-  padding: 1rem 0;
+  padding: 1.5rem 0;
   border-top: 1px solid white;
   transition: all 1s ease-out;
   font-weight: bolder;
+  font-size: 30px;
 }
 
 .nav-link:hover {
@@ -69,7 +74,7 @@
 }
 
 .show-links {
-  height: 310px
+  height: 400px
 }
 
 @media screen and (min-width:992px) {
@@ -107,7 +112,7 @@
 .user-actions {
   display: flex;
   align-items: center;
-  margin-right: auto;
+  margin-left: auto;
 }
 
 .user-actions button {
