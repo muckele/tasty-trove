@@ -6,10 +6,15 @@
   font-size: 35px;
 }
 
-.column-4 {
-  float: left;
-  width: 21%;
-  padding: 10px;
-  margin: 20px;
-  height: 250px;
+.recipe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.recipe-tile {
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }

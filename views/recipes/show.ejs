@@ -4,14 +4,7 @@
 
 <section>
   <p>From the kitchen of <%= recipe.owner.name %>...</p>
-  <% if (recipe.owner.equals(user?.profile._id)) { %>
-    <a href="/recipes/<%= recipe._id %>/edit">
-      <button class="btn">Edit this Recipe 🧑‍🍳🚧</button>
-    </a>
-    <form action="/recipes/<%= recipe._id %>?_method=DELETE" method="POST">
-      <button class="btn" type="submit">Delete this recipe 💀</button>
-    </form>
-  <% } %>
+  <img src="" alt="">
   <h1><%= recipe.name %></h1>
   <h2>Total Time: <%= recipe.totalTime %> </h2>
   <h2>Prep Time: <%= recipe.prepTime %> </h2>
@@ -31,6 +24,14 @@
       <li><%= step %></li>
     <% }) %>
   </ol>
+  <% if (recipe.owner.equals(user?.profile._id)) { %>
+    <a href="/recipes/<%= recipe._id %>/edit">
+      <button class="btn">Edit this Recipe 🧑‍🍳🚧</button>
+    </a>
+    <form action="/recipes/<%= recipe._id %>?_method=DELETE" method="POST">
+      <button class="btn" type="submit">Delete this recipe 💀</button>
+    </form>
+  <% } %>
 </section>
 
 <h2>Reviews</h2>
