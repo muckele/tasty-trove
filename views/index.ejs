@@ -4,7 +4,7 @@
 
 <main>
   <div class="welcome-section">
-    <h1>Hello, <%= user ? user.profile.name : "Chef!" %>
+    <h1>Welcome to Tasty Trove, <%= user ? user.profile.name : "Chef!" %>
     </h1>
     <% if (user?.profile.avatar) { %>
       <div class="avatar-container">

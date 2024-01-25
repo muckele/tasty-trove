@@ -7,10 +7,10 @@
   <div class="recipe-grid">
     <% recipes.forEach((recipe)=> { %>
       <div class="recipe-tile">
-      <img src="<%= recipe.imageUrl %>" alt="<%= recipe.name %>">
-      <h2><%= recipe.name %></h2>
+        <h2><%= recipe.name %></h2>
+        <img src="<%= recipe.imageUrl %>" alt="<%= recipe.name %> Image">
       <p>Total Time: <%= recipe.totalTime %></p>
-        <a href="/recipes/<%= recipe._id %>">View Recipe</a>
+        <a class="view-recipe-btn" href="/recipes/<%= recipe._id %>">View Recipe</a>
       </div>
     <% }) %>
   </div>

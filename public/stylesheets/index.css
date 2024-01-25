@@ -20,7 +20,7 @@ main {
 }
 
 h1 {
-  color: #4CAF50;
+  color: #c57f1e;
   font-size: 32px;
   margin-top: 0;
 }
@@ -53,8 +53,7 @@ h1 {
   height: auto;
   display: block;
   margin: 0 auto;
-  border: 2px solid #4CAF50;
-  /* Example border color */
+  border: 2px solid #c57f1e;
   border-radius: 5px;
   transition: transform 0.3s ease-in-out;
 }
