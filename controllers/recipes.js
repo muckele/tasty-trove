@@ -90,8 +90,12 @@ function deleteRecipe(req, res) {
     Recipe.findById(req.params.recipeId)
     .then(recipe => {
         if (recipe.owner.equals(req.user.profile._id)) {
-        recipe.deleteOne()
+            recipe.deleteOne()
         .then(() => {
+            res.redirect('/recipes')
+        })
+        .catch(err => {
+            console.log(err)
             res.redirect('/recipes')
         })
         } else {
