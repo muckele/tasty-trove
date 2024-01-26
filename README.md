@@ -1,6 +1,6 @@
 # **Tasty Trove**
 
-![alt text](/assets/images/logo-images/logo.png)
+![alt text](/public/assets/images/logo-images/logo.png)
 
 # **[Get Cooking!](https://tasty-trove.fly.dev/)**
 
