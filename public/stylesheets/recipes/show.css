@@ -108,7 +108,6 @@ ol {
   display: flex;
   justify-content: space-between;
   width: 60%;
-  /* Adjust the width to your desired size */
   flex-direction: row;
 }
 
@@ -126,7 +125,6 @@ ol {
 
 #content-textarea {
   width: 100%;
-  /* Adjust the width if needed */
   height: 100px;
 }
 
