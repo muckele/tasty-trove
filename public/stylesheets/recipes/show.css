@@ -9,8 +9,9 @@ body {
 header {
   text-align: center;
   padding: 20px;
-  background-color: #4caf50;
-  color: #fff;
+  background-color: #0b0454;
+  color: #c57f1e;
+  border-radius: 10px;
 }
 
 section {
