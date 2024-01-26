@@ -119,3 +119,18 @@
   margin-right: 0;
   font-size: 16px;
 }
+
+#logout {
+  background-color: #c57f1e;
+  color: #0b0454;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: bold;
+  transition: background-color 0.3s, color 0.3s;
+  border-radius: 15%;
+}
+
+#logout:hover {
+  background-color: #0b0454;
+  color: #c57f1e;
+}
