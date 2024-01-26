@@ -9,9 +9,9 @@
   </div>
   <p id="author">From the kitchen of <%= recipe.owner.name %>...</p>
   <div class="time">
-    <h2 id="total-time">Total Time: <%= recipe.totalTime %> </h2>
-    <hr>
     <h2 id="prep-time">Prep Time: <%= recipe.prepTime %> </h2>
+    <hr>
+    <h2 id="total-time">Total Time: <%= recipe.totalTime %> </h2>
     <hr>
     <h2 id="cook-time">Cook Time: <%= recipe.cookTime %> </h2>
   </div>
@@ -19,11 +19,13 @@
   <div class="recipe-content">
     <div class="ingredients">
       <h2>Ingredients: </h2>
-      <ul>
-        <% recipe.ingredients.forEach(function(ingredient, index) { %>
-          <li><%= ingredient %></li>
-        <% }) %>
-      </ul>
+        <ul class="ingredients-list">
+          <% recipe.ingredients.forEach(function(ingredient, index) { %>
+            <li>
+              <%= ingredient %>
+            </li>
+          <% }) %>
+        </ul>
     </div>
     <div class="preparation">
       <h2>Preparation:</h2>
@@ -35,6 +37,7 @@
     </div>
   </div>
 </section>
+
 <div class="change-btns">
 <% if (recipe.owner.equals(user?.profile._id)) { %>
   <a href="/recipes/<%= recipe._id %>/edit">
@@ -46,70 +49,81 @@
 <% } %>
 </div>
 
-<h2>Reviews</h2>
-<% if (user) { %>
-  <h3>Leave a Review</h3>
-  <form 
-    id="add-review-form"
-    action="/recipes/<%= recipe._id %>/reviews"
-    method="POST"
-  >
-    <textarea name="content" id="content-textarea"></textarea>
-    <label for="rating-select">Rating:</label>
-    <select name="rating" id="rating-select">
-      <option value="1">1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-      <option value="4">4</option>
-      <option value="5" selected>5</option>
-    </select>
-    <button type="submit" class="btn">Add Review</button>
-  </form>
-<% } else { %>
-  <p>Please log in to leave a review.</p>
-<% } %>
+<section class="reviews">
+<hr>
+  <h2>Reccomended Reviews</h2>
 
-<% if (recipe.reviews.length) { %>
-  <table>
-    <thead>
-      <tr>
-        <th>Review</th>
-        <th>Reviewer</th>
-        <th>Rating</th>
-        <th>Date</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% let total = 0 %>
-      <% recipe.reviews.forEach(function(review) { %>
-        <tr>
-          <td><%= review.content %></td>
-          <td><%= review.author.name %></td>
-          <td><%= review.rating %></td>
-          <td><%= review.createdAt.toLocaleDateString() %></td>
-          <td>
-            <% if (review.author.equals(user?.profile._id)) { %>
-              <form action="/recipes/<%= recipe._id %>/reviews/<%= review._id %>?_method=DELETE" method="POST">
-                <button class="btn edit-btn">🗑️</button>
-              </form>
-              <a href="/recipes/<%= recipe._id %>/reviews/<%= review._id %>/edit">
-                <button class="btn edit-btn">📝</button>
-              </a>
-            <% } %>
-          </td>
-        </tr>
+  <% let total=0 %>
+    <% recipe.reviews.forEach(function(review) { %>
+      <% total +=review.rating %>
+        <% }) %>
 
-        <% total += review.rating %>
-      <% }) %>
-      <span class="average-rating">
-        <td colspan="3">Average Rating:</td>
-        <td><%= (recipe.reviews.length > 0) ? (total / recipe.reviews.length).toFixed(2) : 'N/A' %></td>
-      </span>
-    </tbody>
-  </table>
-<% } else { %>
-  <p>No reviews yet. Be the first to leave a review!</p>
-<% } %>
+          <% if (recipe.reviews.length> 0) { %>
+            <span class="average-rating">
+              <p>Average Rating: <%= (total / recipe.reviews.length).toFixed(2) %>
+              </p>
+            </span>
+            <% } else { %>
+              <p id="leave-review">No reviews yet. Be the first to leave a review!</p>
+              <% } %>
+
+                <% if (user) { %>
+                  <form id="add-review-form" action="/recipes/<%= recipe._id %>/reviews" method="POST">
+                    <div class="star-rating">
+                      <label for="rating">Your Rating:</label>
+                      <fieldset id="rating">
+                        <input type="radio" id="star5" name="rating" value="5">
+                        <label for="star5">★</label>
+                        <input type="radio" id="star4" name="rating" value="4">
+                        <label for="star4">★</label>
+                        <input type="radio" id="star3" name="rating" value="3">
+                        <label for="star3">★</label>
+                        <input type="radio" id="star2" name="rating" value="2">
+                        <label for="star2">★</label>
+                        <input type="radio" id="star1" name="rating" value="1" checked>
+                        <label for="star1">★</label>
+                      </fieldset>
+                    </div>
+                    <textarea name="content" id="content-textarea" placeholder="Tell us what you thought!"></textarea>
+                    <br>
+                    <button type="submit" class="submit-review-btn">Submit Review</button>
+                  </form>
+                  <% } else { %>
+                    <p>Please log in to leave a review.</p>
+                    <% } %>
+
+                      <% if (recipe.reviews.length) { %>
+                        <div class="review-cards">
+                          <% recipe.reviews.forEach(function(review) { %>
+                            <div class="review-card">
+                              <header>
+                                <h4>
+                                  <%= review.content %>
+                                </h4>
+                                <p>
+                                  <%= review.author.name %>
+                                </p>
+                                <div class="review-rating">
+                                  <!-- Include your star rating rendering here if needed -->
+                                </div>
+                                <p class="review-date">
+                                  <%= review.createdAt.toLocaleDateString() %>
+                                </p>
+                              </header>
+                              <% if (review.author.equals(user?.profile._id)) { %>
+                                <footer class="review-actions">
+                                  <a href="/recipes/<%= recipe._id %>/reviews/<%= review._id %>/edit">
+                                    <button class="edit-btn">📝 Edit</button>
+                                  </a>
+                                  <form action="/recipes/<%= recipe._id %>/reviews/<%= review._id %>?_method=DELETE" method="POST">
+                                    <button class="delete-btn">️️🗑️ Delete</button>
+                                  </form>
+                                </footer>
+                                <% } %>
+                            </div>
+                            <% }) %>
+                        </div>
+                        <% } %>
+</section>
 
 <%- include('../partials/footer') %>

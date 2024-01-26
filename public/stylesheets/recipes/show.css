@@ -1,6 +1,5 @@
-
 body {
-  font-family: 'Arial', sans-serif;
+  font-family: "times new roman", sans-serif;
   margin: 0;
   padding: 0;
   background-color: #f8f8f8;
@@ -15,7 +14,7 @@ header {
 }
 
 section {
-  max-width: 1000px;
+  max-width: 1500px;
   margin: 20px auto;
   padding: 20px;
   background-color: #fff;
@@ -39,13 +38,7 @@ section {
   justify-content: space-between;
 }
 
-/* #total-time {
 
-}
-
-#prep-time
-
-#cook-time */
 
 .recipe-content {
   display: flex;
@@ -53,19 +46,31 @@ section {
 }
 
 .ingredients {
-  width: 40%;
+  width: 45%;
+  padding: 10px;
+  margin-bottom: 20px;
+  letter-spacing: 0.02em;
+  box-sizing: border-box;
+}
+
+.ingredients li {
+  list-style-type: none;
 }
 
 .preparation {
-  width: 100%;
+  width: 90%;
+  padding: 10px;
 }
 
-#change-btns {
+.change-btns {
   display: flex;
   flex-direction: row;
+  justify-content: center;
+  margin-top: 20px;
+  align-items: center;
 }
 
-button.btn {
+.change-btns button {
   background-color: #0b0454;
   color: #fff;
   border: none;
@@ -75,7 +80,7 @@ button.btn {
   border-radius: 5px;
 }
 
-button.btn:hover {
+.change-btns button:hover {
   background-color: #0b0454;
 }
 
@@ -85,13 +90,124 @@ ol {
   padding: 0;
 }
 
-ul li,
-ol li {
-  list-style-type: none;
-  margin-bottom: 8px;
+
+.reviews {
+  background-color: #f5f5f5;
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 20px;
 }
 
-/* Responsive design */
+.section-header {
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.star-rating {
+  display: flex;
+  justify-content: space-between;
+  width: 60%;
+  /* Adjust the width to your desired size */
+  flex-direction: row;
+}
+
+.star-rating label {
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+#rating {
+  padding: 0;
+  margin: 0;
+  justify-content: flex-start;
+  margin-left: 0;
+}
+
+#content-textarea {
+  width: 100%;
+  /* Adjust the width if needed */
+  height: 100px;
+}
+
+.submit-review-btn {
+  display: flex;
+  justify-content: center;
+  color: #fff;
+  background-color: #0b0454;
+}
+
+.review-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.review-card {
+  width: calc(48% - 10px);
+  margin-bottom: 20px;
+  box-sizing: border-box;
+}
+
+.review-card header {
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.review-card h4 {
+  margin-bottom: 10px;
+}
+
+.review-rating {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.review-rating label {
+  margin-right: 5px;
+  font-size: 16px;
+}
+
+.review-date {
+  color: #999;
+  font-size: 0.8rem;
+}
+
+.review-content {
+  font-size: 1rem;
+  line-height: 1.5;
+  min-height: 100px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.review-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.edit-btn,
+.delete-btn {
+  background-color: #eee;
+  padding: 5px 10px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
 @media (max-width: 600px) {
   section {
     padding: 15px;
@@ -99,5 +215,10 @@ ol li {
 
   h1 {
     font-size: 20px;
+  }
+
+  .ingredients {
+    width: 100%;
+    margin-right: 0;
   }
 }
