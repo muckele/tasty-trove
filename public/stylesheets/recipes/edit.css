@@ -1,32 +1,91 @@
+body {
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f4;
+}
+
+main {
+  max-width: 1000px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #c57f1e;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  color: #0b0454;
+  margin-bottom: 20px;
+  text-align: center;
+
+}
+
 form {
-  display: grid;
-  grid-gap: 10px;
-  grid-template-columns: repeat(2, minmax(auto, 352px));
-  font-size: 20px;
+  display: flex;
+  flex-direction: column;
+  background-color: #0b0454;
+  color: #fff;
+  padding: 20px;
+  border-radius: 8px;
 }
 
-form * {
-  padding: 5px;
-  border-radius: 5px;
-  font-size: 20px;
+label {
+  margin-top: 10px;
+  margin-bottom: 5px;
 }
 
-form > button {
-  grid-column: span 2;
-  width: 160px;
-  margin-left: auto;
-  font-size: 22px;
+input {
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: #fff;
+  color: #0b0454;
 }
 
+ol {
+  list-style-type: none;
+  padding: 0;
+}
 
+li {
+  margin-bottom: 10px;
+}
+
+#preparation-list input {
+  width: calc(100% - 20px);
+  padding: 10px;
+}
 
 #save-changes-button {
-  width: 160px;
-  border-radius: 5px;
-  font-size: 22px;
-  text-align: center;
-  margin: auto;
-  display: flex;
-  display: grid;
-
+  background-color: #c57f1e;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-size: 16px;
+  margin: 0 auto;
+  display: block;
 }
+
+#add-step-button {
+  background-color: #c57f1e;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-right: 10px;
+}
+
+#add-step-button:hover,
+#save-changes-button:hover {
+  background-color: darkslategrey;
+}
+
+#dynamic-form {
+  margin-top: 20px;
+}
+
+span {
+  font-weight: bold;
+}
+

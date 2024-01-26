@@ -15,7 +15,7 @@ header {
 }
 
 section {
-  max-width: 800px;
+  max-width: 1000px;
   margin: 20px auto;
   padding: 20px;
   background-color: #fff;
@@ -23,13 +23,50 @@ section {
   border-radius: 8px;
 }
 
-h1 {
+.recipe-header {
   font-size: 24px;
   margin-bottom: 10px;
+  text-align: center;
+}
+
+#author {
+  text-align: center;
+}
+
+.time {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+/* #total-time {
+
+}
+
+#prep-time
+
+#cook-time */
+
+.recipe-content {
+  display: flex;
+  justify-content: space-between;
+}
+
+.ingredients {
+  width: 40%;
+}
+
+.preparation {
+  width: 100%;
+}
+
+#change-btns {
+  display: flex;
+  flex-direction: row;
 }
 
 button.btn {
-  background-color: #4caf50;
+  background-color: #0b0454;
   color: #fff;
   border: none;
   padding: 10px 15px;
@@ -39,7 +76,7 @@ button.btn {
 }
 
 button.btn:hover {
-  background-color: #45a049;
+  background-color: #0b0454;
 }
 
 ul,
@@ -52,67 +89,6 @@ ul li,
 ol li {
   list-style-type: none;
   margin-bottom: 8px;
-}
-
-textarea {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
-label {
-  display: block;
-  margin-bottom: 8px;
-}
-
-select {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-
-table,
-th,
-td {
-  border: 1px solid #ddd;
-}
-
-th,
-td {
-  padding: 12px;
-  text-align: left;
-}
-
-th {
-  background-color: #4caf50;
-  color: #fff;
-}
-
-tbody tr:hover {
-  background-color: #f5f5f5;
-}
-
-p {
-  color: #555;
-}
-
-p.login-message {
-  margin-top: 20px;
-}
-
-.average-rating {
-  font-size: 18px;
-  color: #555;
 }
 
 /* Responsive design */

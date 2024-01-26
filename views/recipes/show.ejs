@@ -3,36 +3,48 @@
 <%- include('../partials/nav') %>
 
 <section>
-  <p>From the kitchen of <%= recipe.owner.name %>...</p>
-  <img src="<%= recipe.imageUrl %>" alt="<%= recipe.name %>">
-  <h1><%= recipe.name %></h1>
-  <h2>Total Time: <%= recipe.totalTime %> </h2>
-  <h2>Prep Time: <%= recipe.prepTime %> </h2>
-  <h2>Cook Time: <%= recipe.cookTime %> </h2>
-  <div></div>
-
-  <h2>Ingredients: </h2>
-  <ul>
-    <% recipe.ingredients.forEach(function(ingredient, index) { %>
-      <li><%= ingredient %></li>
-    <% }) %>
-  </ul>
-
-  <h2>Preparation:</h2>
-  <ol>
-    <% recipe.preparation.forEach(function(step, index) { %>
-      <li><%= step %></li>
-    <% }) %>
-  </ol>
-  <% if (recipe.owner.equals(user?.profile._id)) { %>
-    <a href="/recipes/<%= recipe._id %>/edit">
-      <button class="btn">Edit this Recipe 🧑‍🍳🚧</button>
-    </a>
-    <form action="/recipes/<%= recipe._id %>?_method=DELETE" method="POST">
-      <button class="btn" type="submit">Delete this recipe 💀</button>
-    </form>
-  <% } %>
+  <div class="recipe-header">
+    <h1><%= recipe.name %></h1>
+    <img src="<%= recipe.imageUrl %>" alt="<%= recipe.name %>">
+  </div>
+  <p id="author">From the kitchen of <%= recipe.owner.name %>...</p>
+  <div class="time">
+    <h2 id="total-time">Total Time: <%= recipe.totalTime %> </h2>
+    <hr>
+    <h2 id="prep-time">Prep Time: <%= recipe.prepTime %> </h2>
+    <hr>
+    <h2 id="cook-time">Cook Time: <%= recipe.cookTime %> </h2>
+  </div>
+  <hr>
+  <div class="recipe-content">
+    <div class="ingredients">
+      <h2>Ingredients: </h2>
+      <ul>
+        <% recipe.ingredients.forEach(function(ingredient, index) { %>
+          <li><%= ingredient %></li>
+        <% }) %>
+      </ul>
+    </div>
+    <div class="preparation">
+      <h2>Preparation:</h2>
+      <ol>
+        <% recipe.preparation.forEach(function(step, index) { %>
+          <li><strong>Step <%= index + 1 %>:</strong><%= step %></li>
+        <% }) %>
+      </ol>
+    </div>
+  </div>
 </section>
+<div class="change-btns">
+<% if (recipe.owner.equals(user?.profile._id)) { %>
+  <a href="/recipes/<%= recipe._id %>/edit">
+    <button class="btn">Edit this Recipe 🧑‍🍳🚧</button>
+  </a>
+  <form action="/recipes/<%= recipe._id %>?_method=DELETE" method="POST">
+    <button class="btn" type="submit">Delete this recipe 💀</button>
+  </form>
+<% } %>
+</div>
 
 <h2>Reviews</h2>
 <% if (user) { %>
