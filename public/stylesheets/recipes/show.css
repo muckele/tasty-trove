@@ -138,6 +138,8 @@ ol {
   justify-content: center;
   color: #fff;
   background-color: #0b0454;
+  padding: 5px;
+  border-radius: 5px;
 }
 
 .review-cards {
