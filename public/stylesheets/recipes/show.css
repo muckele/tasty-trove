@@ -140,6 +140,8 @@ ol {
   background-color: #0b0454;
   padding: 5px;
   border-radius: 5px;
+  margin-top: 5px;
+  margin-bottom: 10px;
 }
 
 .review-cards {
