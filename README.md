@@ -21,10 +21,10 @@ Happy Cooking! 🍽️✨
 * ![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)
 * ![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white) 
 * ![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)
-* Mongoose
 * ![Express](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge)
 * Google OAuth
 * Passport.js
+* Mongoose
 
 ### **Credits 🙌**
 

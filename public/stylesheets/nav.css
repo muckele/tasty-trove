@@ -4,7 +4,7 @@
   align-items: center;
   justify-content: center;
   padding: 10px;
-  background-color: #0b0454
+  background-color: #2f3847
 
 }
 
@@ -122,7 +122,7 @@
 
 #logout {
   background-color: #c57f1e;
-  color: #0b0454;
+  color: #2f3847;
   padding: 10px;
   font-size: 14px;
   font-weight: bold;
@@ -131,6 +131,6 @@
 }
 
 #logout:hover {
-  background-color: #0b0454;
+  background-color: #2f3847;
   color: #c57f1e;
 }
