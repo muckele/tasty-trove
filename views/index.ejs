@@ -32,11 +32,11 @@
 
       <!-- Random Recipes Section -->
       <div class="top-recipes">
-        <h2>Recipes Trending Now</h2>
+        <h2>Random Recipes</h2>
         <div class="recipe-list">
           <% randomRecipes.forEach(recipe=> { %>
             <div class="recipe-card">
-              <img src="<%= recipe.image %>" alt="<%= recipe.name %>">
+              <img src="<%= recipe.imageUrl %>" alt="<%= recipe.name %>">
               <h3>
                 <%= recipe.name %>
               </h3>
