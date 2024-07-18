@@ -3,57 +3,49 @@
 <script defer src="/javascript/nav.js"></script>
 <% if (!user) { %>
   <script defer src="https://accounts.google.com/gsi/client"></script>
-<% } %>
-</head>
+  <% } %>
+    </head>
 
-<body>
-  <nav class="navbar">
-    <div class="nav-center">
-      <div class="nav-header">
-        <a href="/" class="nav-logo">
-          <img src="/assets/images/logo-images/logo.png" alt="Tasty Trove">
-        </a>
-        <button type="button" class="nav-btn">
-          <i class="fas fa-align-justify"></i>
-        </button>
-      </div>
-      <div class="nav-links show-links">
-        <a href="/" class="nav-link">
-          Home
-        </a>
-        <% if (user) { %>
-          <a href="/recipes/new" class="nav-link">
-            Create A Recipe
-          </a>
-        <% } %>
-        <a href="/recipes" class="nav-link">
-          All Recipes
-        </a>
-      </div>
-    </div>
-    <div class="user-actions">
-      <% if (user) { %>
-        <a href="/auth/logout">
-          <button type="submit" id="logout">Logout</button>
-        </a>
-      <% } else { %>
-        <div 
-          id="g_id_onload" 
-          data-client_id="<%= googleClientID %>" 
-          data-login_uri="/auth/google"
-          data-auto_prompt="false" 
-          data-prompt_parent_id="g_id_onload"
-        ></div>
-        <div 
-          class="g_id_signin" 
-          data-type="standard" 
-          data-size="large" 
-          data-theme="outline"
-          data-text="sign_in_with" 
-          data-shape="rectangular" 
-          data-logo_alignment="right"></div>
-      <% } %>
-    </div>
-  </nav>
-
-
+    <body>
+      <nav class="navbar">
+        <div class="nav-center">
+          <div class="nav-header">
+            <a href="/" class="nav-logo">
+              <img src="/assets/images/logo-images/logo.png" alt="Tasty Trove">
+            </a>
+            <button type="button" class="nav-btn">
+              <i class="fas fa-align-justify"></i>
+            </button>
+          </div>
+          <div class="nav-links show-links">
+            <a href="/" class="nav-link">
+              Home
+            </a>
+            <% if (user) { %>
+              <a href="/recipes/new" class="nav-link">
+                Create A Recipe
+              </a>
+              <% } %>
+                <a href="/recipes" class="nav-link">
+                  All Recipes
+                </a>
+          </div>
+          <!-- Search form -->
+          <form action="/search" method="GET" class="search-form">
+            <input type="text" name="query" placeholder="Search for recipes...">
+            <button type="submit"><i class="fas fa-search"></i></button>
+          </form>
+        </div>
+        <div class="user-actions">
+          <% if (user) { %>
+            <a href="/auth/logout">
+              <button type="submit" id="logout">Logout</button>
+            </a>
+            <% } else { %>
+              <div id="g_id_onload" data-client_id="<%= googleClientID %>" data-login_uri="/auth/google"
+                data-auto_prompt="false" data-prompt_parent_id="g_id_onload"></div>
+              <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline"
+                data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="right"></div>
+              <% } %>
+        </div>
+      </nav>

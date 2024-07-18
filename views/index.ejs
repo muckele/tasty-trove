@@ -3,51 +3,51 @@
   <%- include('./partials/nav') %>
 
     <main>
-      <div class="welcome-section">
+      <section class="welcome-section">
         <h1>Welcome to Tasty Trove, <%= user ? user.profile.name : "Chef!" %>
         </h1>
         <% if (user?.profile.avatar) { %>
           <div class="avatar-container">
-            <img src="<%= user.profile.avatar %>" alt="<%= user.profile.name %> avatar" />
+            <img src="<%= user.profile.avatar %>" alt="<%= user.profile.name %> avatar">
           </div>
           <% } %>
-      </div>
-      <div id="welcome-message">
+      </section>
+
+      <section id="welcome-message">
         <p>Indulge your taste buds in a culinary adventure with Tasty Trove, your go-to destination
           for delicious recipes that ignite the chef in you! From mouthwatering mains to irresistible desserts, we've
           curated a collection that promises to elevate your cooking experience.
-          <br>
-          <br>
+          <br><br>
           Explore, cook, and savor the joy of creating culinary wonders. Get ready to embark on a flavorsome journey!
-          <br>
-          <br>
+          <br><br>
           Happy Cooking! 🍽️✨
         </p>
-      </div>
+      </section>
 
       <hr>
-      <div class="logo-section">
+      <section class="logo-section">
         <img id="logo" src="/assets/images/logo-images/logo.png" alt="Title Image">
-      </div>
+      </section>
 
       <!-- Random Recipes Section -->
-      <div class="top-recipes">
+      <section class="top-recipes">
         <h2>Top Recipes</h2>
         <div class="recipe-list">
           <% randomRecipes.forEach(recipe=> { %>
             <div class="recipe-card">
               <img src="<%= recipe.imageUrl %>" alt="<%= recipe.name %>">
-              <h3>
-                <%= recipe.name %>
-              </h3>
-              <p>
-                <%= recipe.description %>
-              </p>
+              <div class="recipe-info">
+                <h3>
+                  <%= recipe.name %>
+                </h3>
+                <p>
+                  <%= recipe.description %>
+                </p>
+              </div>
             </div>
             <% }) %>
         </div>
-      </div>
-
+      </section>
     </main>
 
     <%- include('./partials/footer') %>

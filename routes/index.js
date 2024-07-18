@@ -3,11 +3,6 @@ import { Recipe } from '../models/recipe.js';
 
 const router = Router();
 
-function getRandomRecipes(recipes, count) {
-  const shuffled = recipes.sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, count);
-}
-
 router.get('/', function (req, res) {
   Recipe.find({})
     .then(recipes => {
@@ -19,6 +14,23 @@ router.get('/', function (req, res) {
       res.redirect('/');
     });
 });
+
+router.get('/search', (req, res) => {
+  const query = req.query.query;
+  Recipe.find({ name: new RegExp(query, 'i') })
+    .then(recipes => {
+      res.render('recipes/index', { recipes, title: 'Search Results' });
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect('/');
+    });
+});
+
+function getRandomRecipes(recipes, count) {
+  const shuffled = recipes.sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+}
 
 export {
   router
