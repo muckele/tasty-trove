@@ -1,32 +1,53 @@
 <%- include('./partials/html-head') %>
-<link rel="stylesheet" href="/stylesheets/index.css">
-<%- include('./partials/nav') %>
+  <link rel="stylesheet" href="/stylesheets/index.css">
+  <%- include('./partials/nav') %>
 
-<main>
-  <div class="welcome-section">
-    <h1>Welcome to Tasty Trove, <%= user ? user.profile.name : "Chef!" %>
-    </h1>
-    <% if (user?.profile.avatar) { %>
-      <div class="avatar-container">
-        <img src="<%= user.profile.avatar %>" alt="<%= user.profile.name %> avatar" />
+    <main>
+      <div class="welcome-section">
+        <h1>Welcome to Tasty Trove, <%= user ? user.profile.name : "Chef!" %>
+        </h1>
+        <% if (user?.profile.avatar) { %>
+          <div class="avatar-container">
+            <img src="<%= user.profile.avatar %>" alt="<%= user.profile.name %> avatar" />
+          </div>
+          <% } %>
       </div>
-    <% } %>
-  </div>
-  <div id="welcome-message">
-    <p>Indulge your taste buds in a culinary adventure with Tasty Trove, your go-to destination
-      for delicious recipes that ignite the chef in you! From mouthwatering mains to irresistible desserts, we've curated a collection that promises to elevate your cooking experience.
-      <br>
-      <br>
-      Explore, cook, and savor the joy of creating culinary wonders. Get ready to embark on a flavorsome journey!
-      <br>
-      <br>
-      Happy Cooking! 🍽️✨
-    </p>
-  </div>
-  <hr>
-  <div class="logo-section">
-    <img id="logo" src="/assets/images/logo-images/logo.png" alt="Title Image">
-  </div>
+      <div id="welcome-message">
+        <p>Indulge your taste buds in a culinary adventure with Tasty Trove, your go-to destination
+          for delicious recipes that ignite the chef in you! From mouthwatering mains to irresistible desserts, we've
+          curated a collection that promises to elevate your cooking experience.
+          <br>
+          <br>
+          Explore, cook, and savor the joy of creating culinary wonders. Get ready to embark on a flavorsome journey!
+          <br>
+          <br>
+          Happy Cooking! 🍽️✨
+        </p>
+      </div>
 
-</main>
-<%- include('./partials/footer') %>
+      <hr>
+      <div class="logo-section">
+        <img id="logo" src="/assets/images/logo-images/logo.png" alt="Title Image">
+      </div>
+
+      <!-- Random Recipes Section -->
+      <div class="top-recipes">
+        <h2>Top Recipes</h2>
+        <div class="recipe-list">
+          <% randomRecipes.forEach(recipe=> { %>
+            <div class="recipe-card">
+              <img src="<%= recipe.image %>" alt="<%= recipe.name %>">
+              <h3>
+                <%= recipe.name %>
+              </h3>
+              <p>
+                <%= recipe.description %>
+              </p>
+            </div>
+            <% }) %>
+        </div>
+      </div>
+
+    </main>
+
+    <%- include('./partials/footer') %>
