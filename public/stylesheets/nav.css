@@ -18,7 +18,8 @@
 }
 
 .nav-logo img {
-  max-height: 50px;
+  max-height: 6em;
+  width: auto;
 }
 
 .nav-btn {
