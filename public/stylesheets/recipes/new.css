@@ -9,12 +9,12 @@ main {
   max-width: 1000px;
   margin: 20px auto;
   padding: 20px;
-  background-color:  #c57f1e;
+  background-color:  #fff;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
-  color: #0b0454;
+  color: #2f3847;
   margin-bottom: 20px;
   text-align: center;
 
@@ -23,7 +23,7 @@ h1 {
 form {
   display: flex;
   flex-direction: column;
-  background-color: #0b0454;
+  background-color: #2f3847;
   color: #fff;
   padding: 20px;
   border-radius: 8px;
