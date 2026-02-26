@@ -120,6 +120,7 @@ body {
 .library-recipe-card p {
   margin: 0 0 8px;
   font-size: 0.84rem;
+  line-height: 1.45;
 }
 
 .favorited-label {
@@ -181,5 +182,10 @@ body {
   .library-page select,
   .library-page button {
     width: 100%;
+  }
+
+  .collection-recipes li {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

@@ -1,0 +1,65 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
+  background:
+    radial-gradient(circle at 14% 10%, #efe1cd 0%, rgba(239, 225, 205, 0.08) 44%),
+    radial-gradient(circle at 86% 18%, #dbe8e6 0%, rgba(219, 232, 230, 0.08) 42%),
+    #f7f3ec;
+  color: #203344;
+}
+
+.not-found-page {
+  min-height: calc(100vh - 140px);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.not-found-shell {
+  width: min(560px, 100%);
+  text-align: center;
+  border: 1px solid #e7dbc8;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #fcf8f1 0%, #f6efdf 100%);
+  box-shadow: 0 14px 34px rgba(24, 41, 58, 0.1);
+  padding: 28px 22px;
+}
+
+.not-found-kicker {
+  margin: 0 0 8px;
+  color: #2f6466;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.not-found-shell h1 {
+  margin: 0 0 8px;
+  color: #203344;
+  font-size: clamp(1.9rem, 5vw, 2.5rem);
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+}
+
+.not-found-shell p {
+  margin: 0;
+  color: #4f5f69;
+}
+
+.not-found-link {
+  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #2f6466;
+  color: #f2f7f3;
+  text-decoration: none;
+  padding: 10px 14px;
+  font-weight: 700;
+}
+
+.not-found-link:hover {
+  background: #244f58;
+}

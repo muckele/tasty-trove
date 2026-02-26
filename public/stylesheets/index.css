@@ -314,6 +314,10 @@ body {
   margin: 0;
   color: #4d5d68;
   line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .no-home-recipes {
@@ -375,5 +379,19 @@ body {
   .hero-action-primary,
   .hero-action-secondary {
     width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-page {
+    padding: 0 10px;
+  }
+
+  .home-hero {
+    padding: 24px 14px 90px;
+  }
+
+  .featured-content {
+    padding: 18px 14px 16px;
   }
 }

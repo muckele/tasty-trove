@@ -79,6 +79,7 @@ body {
   min-height: 220px;
   resize: vertical;
   background: #fff;
+  line-height: 1.5;
 }
 
 #import-recipe-button {
@@ -204,6 +205,8 @@ body {
 
 #dynamic-form {
   margin-top: 10px;
+  display: grid;
+  gap: 8px;
 }
 
 #preparation-list {
@@ -327,6 +330,10 @@ body {
     min-width: 0;
   }
 
+  #import-text-input {
+    min-height: 180px;
+  }
+
   #import-recipe-button,
   #add-step-button,
   #create-recipe-button,
@@ -341,5 +348,20 @@ body {
     width: 100%;
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .tag-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .recipe-editor-page h1 {
+    margin-bottom: 14px;
+  }
+
+  .recipe-editor-form label,
+  .recipe-editor-form span {
+    font-size: 0.74rem;
   }
 }

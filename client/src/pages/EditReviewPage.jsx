@@ -36,9 +36,11 @@ function EditReviewPage({ user, sessionLoading }) {
 
   if (sessionLoading && !user) {
     return (
-      <section className="recipe-shell review-edit-page">
-        <h1>Loading...</h1>
-      </section>
+      <main className="recipe-show-page review-edit-page-shell">
+        <section className="recipe-shell review-edit-page">
+          <h1>Loading...</h1>
+        </section>
+      </main>
     )
   }
 
@@ -58,34 +60,36 @@ function EditReviewPage({ user, sessionLoading }) {
   }
 
   return (
-    <section className="recipe-shell review-edit-page">
-      <h1>Edit your review!</h1>
-      <form className="review-edit-form" onSubmit={handleSubmit}>
-        <label htmlFor="content-textarea">Review:</label>
-        <textarea
-          name="content"
-          id="content-textarea"
-          value={content}
-          onChange={(event) => setContent(event.target.value)}
-        />
+    <main className="recipe-show-page review-edit-page-shell">
+      <section className="recipe-shell review-edit-page">
+        <h1>Edit your review!</h1>
+        <form className="review-edit-form" onSubmit={handleSubmit}>
+          <label htmlFor="content-textarea">Review:</label>
+          <textarea
+            name="content"
+            id="content-textarea"
+            value={content}
+            onChange={(event) => setContent(event.target.value)}
+          />
 
-        <label htmlFor="rating-select">Rating:</label>
-        <select
-          name="rating"
-          id="rating-select"
-          value={rating}
-          onChange={(event) => setRating(Number(event.target.value))}
-        >
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-        </select>
+          <label htmlFor="rating-select">Rating:</label>
+          <select
+            name="rating"
+            id="rating-select"
+            value={rating}
+            onChange={(event) => setRating(Number(event.target.value))}
+          >
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
 
-        <button className="submit-review-btn" type="submit">Update Review</button>
-      </form>
-    </section>
+          <button className="submit-review-btn" type="submit">Update Review</button>
+        </form>
+      </section>
+    </main>
   )
 }
 

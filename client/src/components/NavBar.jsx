@@ -3,10 +3,17 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { usePageStylesheets } from '../hooks/usePageStylesheets'
 import { api } from '../services/api'
 
+const MOBILE_NAV_BREAKPOINT = 1020
+
 function NavBar({ user, googleClientID, onSessionChange }) {
   usePageStylesheets(['/stylesheets/nav.css'])
 
-  const [showLinks, setShowLinks] = useState(true)
+  const [showLinks, setShowLinks] = useState(() => {
+    if (typeof window === 'undefined') {
+      return true
+    }
+    return window.innerWidth > MOBILE_NAV_BREAKPOINT
+  })
   const [query, setQuery] = useState('')
   const navigate = useNavigate()
   const location = useLocation()
@@ -15,6 +22,16 @@ function NavBar({ user, googleClientID, onSessionChange }) {
     const params = new URLSearchParams(location.search)
     setQuery(params.get('query') || '')
   }, [location.search])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    if (window.innerWidth <= MOBILE_NAV_BREAKPOINT) {
+      setShowLinks(false)
+    }
+  }, [location.pathname, location.search])
 
   useEffect(() => {
     if (user || !googleClientID) {
@@ -54,6 +71,16 @@ function NavBar({ user, googleClientID, onSessionChange }) {
     navigate(`/recipes?query=${encodeURIComponent(value)}`)
   }
 
+  function handleNavLinkClick() {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    if (window.innerWidth <= MOBILE_NAV_BREAKPOINT) {
+      setShowLinks(false)
+    }
+  }
+
   return (
     <nav className="navbar">
       <div className="nav-center">
@@ -73,6 +100,7 @@ function NavBar({ user, googleClientID, onSessionChange }) {
           <NavLink
             to="/"
             className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+            onClick={handleNavLinkClick}
           >
             Home
           </NavLink>
@@ -83,6 +111,7 @@ function NavBar({ user, googleClientID, onSessionChange }) {
                 className={({ isActive }) =>
                   isActive ? 'nav-link active' : 'nav-link'
                 }
+                onClick={handleNavLinkClick}
               >
                 Create A Recipe
               </NavLink>
@@ -91,6 +120,7 @@ function NavBar({ user, googleClientID, onSessionChange }) {
                 className={({ isActive }) =>
                   isActive ? 'nav-link active' : 'nav-link'
                 }
+                onClick={handleNavLinkClick}
               >
                 Meal Planner
               </NavLink>
@@ -99,6 +129,7 @@ function NavBar({ user, googleClientID, onSessionChange }) {
                 className={({ isActive }) =>
                   isActive ? 'nav-link active' : 'nav-link'
                 }
+                onClick={handleNavLinkClick}
               >
                 Library
               </NavLink>
@@ -107,6 +138,7 @@ function NavBar({ user, googleClientID, onSessionChange }) {
           <NavLink
             to="/recipes"
             className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+            onClick={handleNavLinkClick}
           >
             All Recipes
           </NavLink>
