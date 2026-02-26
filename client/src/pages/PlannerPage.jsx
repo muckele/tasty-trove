@@ -257,7 +257,59 @@ function PlannerPage({ user, sessionLoading }) {
     }
   }
 
-  function handleSendToAppleReminders() {
+  function copyTextSync(value) {
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return false
+    }
+
+    try {
+      const textarea = document.createElement('textarea')
+      textarea.value = value
+      textarea.setAttribute('readonly', '')
+      textarea.style.position = 'fixed'
+      textarea.style.top = '-9999px'
+      textarea.style.left = '-9999px'
+      document.body.appendChild(textarea)
+      textarea.focus()
+      textarea.select()
+      const copied = document.execCommand('copy')
+      document.body.removeChild(textarea)
+      return copied
+    } catch (err) {
+      console.log(err)
+      return false
+    }
+  }
+
+  function launchShortcutUrl(url) {
+    if (typeof window === 'undefined') {
+      return false
+    }
+
+    try {
+      window.location.assign(url)
+      return true
+    } catch (err) {
+      console.log(err)
+    }
+
+    try {
+      const link = window.document.createElement('a')
+      link.href = url
+      link.rel = 'noreferrer'
+      link.style.display = 'none'
+      window.document.body.appendChild(link)
+      link.click()
+      window.document.body.removeChild(link)
+      return true
+    } catch (err) {
+      console.log(err)
+    }
+
+    return false
+  }
+
+  async function handleSendToAppleReminders() {
     setExportMessage('')
     setExportError('')
 
@@ -271,13 +323,35 @@ function PlannerPage({ user, sessionLoading }) {
       return
     }
 
+    let copied = copyTextSync(appleRemindersPayload)
+    if (!copied && navigator?.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(appleRemindersPayload)
+        copied = true
+      } catch (err) {
+        console.log(err)
+      }
+    }
+
+    if (!copied) {
+      setExportError(
+        'Unable to copy grocery list for export. Use "Copy For Reminders" and run the shortcut manually.'
+      )
+      return
+    }
+
     const shortcutUrl =
       `shortcuts://run-shortcut?name=` +
-      `${encodeURIComponent(APPLE_REMINDERS_SHORTCUT_NAME)}` +
-      `&input=text&text=${encodeURIComponent(appleRemindersPayload)}`
+      `${encodeURIComponent(APPLE_REMINDERS_SHORTCUT_NAME)}`
+    const launched = launchShortcutUrl(shortcutUrl)
+    if (!launched) {
+      setExportError(
+        'Unable to open Apple Shortcuts from this browser. Use "Copy For Reminders" and run the shortcut manually.'
+      )
+      return
+    }
 
-    window.location.href = shortcutUrl
-    setExportMessage('Opening Apple Shortcuts...')
+    setExportMessage('Copied grocery list and opening Apple Shortcuts...')
   }
 
   function handleRemoveGroceryItem(aisle, item) {
@@ -439,8 +513,9 @@ function PlannerPage({ user, sessionLoading }) {
         </div>
         <p className="grocery-export-hint">
           Use with an Apple Shortcut named "{APPLE_REMINDERS_SHORTCUT_NAME}" that
-          splits input by newline and creates reminders in your Grocery list. You
-          can remove items below before exporting.
+          reads clipboard text, splits by newline, and creates reminders in your
+          Grocery list. The export button copies your grocery list first, then
+          opens the shortcut. You can remove items below before exporting.
         </p>
         {exportError ? <p className="planner-error">{exportError}</p> : null}
         {exportMessage ? <p className="planner-success">{exportMessage}</p> : null}
