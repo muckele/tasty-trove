@@ -20,6 +20,9 @@ const reviewSchema = new Schema({
 
 const recipeSchema = new Schema({
     name: String,
+    description: String,
+    sourceUrl: String,
+    servings: String,
     imageUrl: String,
     totalTime: Number,
     prepTime: Number,

@@ -19,12 +19,35 @@ Happy Cooking! 🍽️✨
 * ![CSS](https://img.shields.io/badge/CSS-239120?&style=for-the-badge&logo=css3&logoColor=white)
 * ![Git](https://img.shields.io/badge/GIT-E44C30?style=for-the-badge&logo=git&logoColor=white)
 * ![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)
-* ![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white) 
+* ![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
+* ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+* Vite
 * ![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)
 * ![Express](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge)
 * Google OAuth
 * Passport.js
 * Mongoose
+
+### **Run Locally (MERN)**
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Start API + React dev servers:
+   ```bash
+   npm run dev
+   ```
+   App: `http://localhost:3000`  
+   API server (proxied): `http://localhost:3001`
+3. Build client for production:
+   ```bash
+   npm run build
+   ```
+4. Start production server:
+   ```bash
+   npm start
+   ```
 
 ### **Credits 🙌**
 
@@ -48,6 +71,4 @@ Happy Cooking! 🍽️✨
 - [ ] AAU or AAG can view featured recipes on the landing page
 
 ### **[Planning Materials](https://trello.com/b/bUq5yCQM/tasty-trove)**
-
-
 

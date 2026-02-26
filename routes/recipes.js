@@ -4,38 +4,26 @@ import { isLoggedIn } from '../middleware/middleware.js'
 
 const router = Router()
 
-// GET localhost:3000/recipes
+// GET /api/recipes
 router.get('/', recipesCtrl.index)
-// GET /recipes/new
-router.get('/new', isLoggedIn, recipesCtrl.new)
-// POST /recipes
+// GET /api/recipes/random
+router.get('/random', recipesCtrl.random)
+// POST /api/recipes
 router.post('/', isLoggedIn, recipesCtrl.create)
-// POST /recipes/:recipeId/reviews
-router.post('/:recipeId/reviews', isLoggedIn, recipesCtrl.createReview)
-// GET /recipe/:recipeId
+// POST /api/recipes/import
+router.post('/import', isLoggedIn, recipesCtrl.importRecipe)
+// GET /api/recipes/:recipeId
 router.get('/:recipeId', recipesCtrl.show)
-// GET /recipes/:recipeId/edit
-router.get('/:recipeId/edit', isLoggedIn, recipesCtrl.edit)
-// GET /recipes/:recipeId/reviews/:reviewId/edit
-router.get(
-  '/:recipeId/reviews/:reviewId/edit',
-  isLoggedIn, 
-  recipesCtrl.editReview
-)
-// PUT /recipes/:recipeId
+// PUT /api/recipes/:recipeId
 router.put('/:recipeId', isLoggedIn, recipesCtrl.update)
-// PUT recipes/:recipeId/reviews/:reviewId
-router.put('/:recipeId/reviews/:reviewId', isLoggedIn, recipesCtrl.updateReview)
-// DELETE /recipes/:recipeId
+// DELETE /api/recipes/:recipeId
 router.delete('/:recipeId', isLoggedIn, recipesCtrl.delete)
-// DELETE recipes/:recipeId/reviews/:reviewId
-router.delete(
-  '/:recipeId/reviews/:reviewId',
-  isLoggedIn, 
-  recipesCtrl.deleteReview
-)
-
-
+// POST /api/recipes/:recipeId/reviews
+router.post('/:recipeId/reviews', isLoggedIn, recipesCtrl.createReview)
+// PUT /api/recipes/:recipeId/reviews/:reviewId
+router.put('/:recipeId/reviews/:reviewId', isLoggedIn, recipesCtrl.updateReview)
+// DELETE /api/recipes/:recipeId/reviews/:reviewId
+router.delete('/:recipeId/reviews/:reviewId', isLoggedIn, recipesCtrl.deleteReview)
 
 export {
   router

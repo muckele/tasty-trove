@@ -4,22 +4,31 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node ./bin/www.js"
+    "server": "node ./bin/www.js",
+    "server:dev": "nodemon ./bin/www.js",
+    "client:dev": "vite --config client/vite.config.js",
+    "client:build": "vite build --config client/vite.config.js",
+    "dev": "concurrently \"PORT=3001 npm run server:dev\" \"npm run client:dev\"",
+    "build": "npm run client:build",
+    "start": "NODE_ENV=production node ./bin/www.js"
   },
   "dependencies": {
     "dotenv": "^16.3.1",
-    "ejs": "^3.1.9",
     "express": "^4.18.2",
     "express-session": "^1.17.3",
-    "http-errors": "^2.0.0",
-    "method-override": "^3.0.0",
     "mongoose": "^8.0.3",
     "morgan": "^1.10.0",
     "passport": "^0.7.0",
     "passport-google-one-tap": "^1.0.1",
-    "swiper": "^11.0.5"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.1"
   },
   "devDependencies": {
-    "@flydotio/dockerfile": "^0.5.0"
+    "@flydotio/dockerfile": "^0.5.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.10",
+    "vite": "^5.4.19"
   }
 }

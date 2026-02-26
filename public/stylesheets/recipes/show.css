@@ -33,6 +33,10 @@ section {
   text-align: center;
 }
 
+section a {
+  color: #0b0454;
+}
+
 .time {
   display: flex;
   flex-direction: row;

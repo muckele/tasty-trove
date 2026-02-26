@@ -22,10 +22,13 @@ RUN apt-get update -qq && \
 
 # Install node modules
 COPY --link package-lock.json package.json ./
-RUN npm ci
+RUN npm install --no-audit --no-fund
 
 # Copy application code
 COPY --link . .
+
+# Build the React client for production static hosting
+RUN npm run build
 
 
 # Final stage for app image

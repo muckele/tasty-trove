@@ -13,6 +13,63 @@ main {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
+.import-recipe-card {
+  background-color: #0b0454;
+  color: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.import-recipe-card h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #c57f1e;
+}
+
+.import-recipe-card p {
+  margin-top: 0;
+  margin-bottom: 14px;
+}
+
+.import-recipe-form {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  background: transparent;
+  padding: 0;
+}
+
+#import-url-input {
+  flex: 1;
+  min-width: 260px;
+}
+
+#import-recipe-button {
+  background-color: #c57f1e;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 4px;
+}
+
+#import-recipe-button:hover {
+  background-color: darkslategrey;
+}
+
+#import-recipe-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.import-error {
+  color: #ffd3d3;
+  margin-bottom: 0;
+}
+
 h1 {
   color: #2f3847;
   margin-bottom: 20px;

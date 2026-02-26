@@ -1,213 +1,261 @@
 import { Recipe } from '../models/recipe.js'
+import { scrapeRecipeFromUrl } from '../services/recipeImporter.js'
 
-function index(req, res) {
-    Recipe.find({})
-    .then(recipes => {
-        res.render('recipes/index', {
-            recipes,
-            title: "All Recipes"
-        })
-    })
-    .catch(err => {
-        console.log(err)
-        res.redirect("/")
-    })
+function normalizeStringArray(value, delimiter = ',') {
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => String(entry).trim())
+      .filter(Boolean)
+  }
+
+  if (typeof value === 'string') {
+    return value
+      .split(delimiter)
+      .map((entry) => entry.trim())
+      .filter(Boolean)
+  }
+
+  return []
 }
 
-function newRecipe(req, res) {
-    res.render('recipes/new', {
-        title: 'Add Recipe'
-    })
+function recipePayload(body) {
+  const payload = {
+    name: typeof body.name === 'string' ? body.name.trim() : '',
+    imageUrl: typeof body.imageUrl === 'string' ? body.imageUrl.trim() : '',
+    totalTime: Number(body.totalTime) || 0,
+    prepTime: Number(body.prepTime) || 0,
+    cookTime: Number(body.cookTime) || 0,
+  }
+
+  if (body.description !== undefined) {
+    payload.description =
+      typeof body.description === 'string' ? body.description.trim() : ''
+  }
+
+  if (body.sourceUrl !== undefined) {
+    payload.sourceUrl = typeof body.sourceUrl === 'string' ? body.sourceUrl.trim() : ''
+  }
+
+  if (body.servings !== undefined) {
+    payload.servings = typeof body.servings === 'string' ? body.servings.trim() : ''
+  }
+
+  if (body.ingredients !== undefined) {
+    payload.ingredients = normalizeStringArray(body.ingredients)
+  }
+
+  if (body.preparation !== undefined) {
+    payload.preparation = normalizeStringArray(body.preparation, '\n')
+  }
+
+  return payload
 }
 
-function create(req, res) {
-    req.body.owner = req.user.profile._id
-    if (req.body.ingredients) {
-        req.body.ingredients = req.body.ingredients.split(', ')
+async function loadRecipeWithRelations(recipeId) {
+  return Recipe.findById(recipeId).populate([
+    { path: 'owner', select: 'name avatar' },
+    { path: 'reviews.author', select: 'name avatar' },
+  ])
+}
+
+async function index(req, res) {
+  try {
+    const nameQuery = (req.query.query || '').trim()
+    const filter = nameQuery ? { name: new RegExp(nameQuery, 'i') } : {}
+    const recipes = await Recipe.find(filter).sort({ createdAt: -1 })
+    return res.json({ recipes })
+  } catch (err) {
+    console.log(err)
+    return res.status(500).json({ error: 'Unable to fetch recipes' })
+  }
+}
+
+async function random(req, res) {
+  try {
+    const limit = Math.min(Math.max(Number(req.query.limit) || 5, 1), 20)
+    const recipes = await Recipe.find({})
+    const randomRecipes = [...recipes]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, limit)
+
+    return res.json({ recipes: randomRecipes })
+  } catch (err) {
+    console.log(err)
+    return res.status(500).json({ error: 'Unable to fetch random recipes' })
+  }
+}
+
+async function create(req, res) {
+  try {
+    const payload = recipePayload(req.body)
+    payload.owner = req.user.profile._id
+    const recipe = await Recipe.create(payload)
+    return res.status(201).json({ recipe })
+  } catch (err) {
+    console.log(err)
+    return res.status(400).json({ error: 'Unable to create recipe' })
+  }
+}
+
+async function importRecipe(req, res) {
+  try {
+    const importedData = await scrapeRecipeFromUrl(req.body.url)
+    const payload = recipePayload(importedData)
+    payload.owner = req.user.profile._id
+
+    const recipe = await Recipe.create(payload)
+    const hydratedRecipe = await loadRecipeWithRelations(recipe._id)
+
+    return res.status(201).json({ recipe: hydratedRecipe })
+  } catch (err) {
+    console.log(err)
+    return res.status(400).json({
+      error: err.message || 'Unable to import recipe from URL',
+    })
+  }
+}
+
+async function show(req, res) {
+  try {
+    const recipe = await loadRecipeWithRelations(req.params.recipeId)
+    if (!recipe) {
+      return res.status(404).json({ error: 'Recipe not found' })
     }
-    console.log(req.body)
-    Recipe.create(req.body)
-    .then(recipe => {
-        res.redirect('/recipes')
-    })
-    .catch(err => {
-        console.log(err)
-        res.redirect('/recipes')
-    })
+
+    return res.json({ recipe })
+  } catch (err) {
+    console.log(err)
+    return res.status(400).json({ error: 'Unable to fetch recipe' })
+  }
 }
 
-function show(req, res) {
-    Recipe.findById(req.params.recipeId)
-    .populate([
-        {path: "owner"},
-        {path: "reviews.author"}
-    ])
-    .then(recipe => {
-        res.render('recipes/show', {
-        recipe,
-        title: "Recipe Show"
-        })
-    })
-    .catch(err => {
-        console.log(err)
-        res.redirect('/recipes')
-    })
-}
-
-function edit(req, res) {
-    Recipe.findById(req.params.recipeId)
-    .then(recipe => {
-        res.render('recipes/edit', {
-            recipe,
-            title: "Edit Recipe"
-        })
-    })
-    .catch(err => {
-        console.log(err)
-        res.redirect('/recipes')
-    })
-}
-
-function update(req, res) {
-    Recipe.findByIdAndUpdate(req.params.recipeId, req.body, {new: true})
-    .then(recipe => {
-        if (recipe.owner.equals(req.user.profile._id)) {
-            recipe.updateOne(req.body)
-            .then(()=> {
-                res.redirect(`/recipes/${recipe._id}`)
-            })
-        } else {
-            throw new Error('🚫 Not authorized 🚫')
-        }
-    })
-    .catch(err => {
-        console.log(err)
-        res.redirect("/recipes")
-    })
-}
-
-function deleteRecipe(req, res) {
-    Recipe.findById(req.params.recipeId)
-    .then(recipe => {
-        if (recipe.owner.equals(req.user.profile._id)) {
-            recipe.deleteOne()
-        .then(() => {
-            res.redirect('/recipes')
-        })
-        .catch(err => {
-            console.log(err)
-            res.redirect('/recipes')
-        })
-        } else {
-            throw new Error ('🚫 Not authorized 🚫')
-        }   
-    })
-    .catch(err => {
-        console.log(err)
-        res.redirect('/recipes')
-    })
-}
-
-function createReview(req, res) {
-    Recipe.findById(req.params.recipeId)
-    .then(recipe => {
-        req.body.author = req.user.profile._id
-        recipe.reviews.push(req.body)
-        recipe.save()
-        .then(() => {
-            res.redirect(`/recipes/${recipe._id}`)
-        })
-        .catch(err => {
-            console.log(err)
-            res.redirect('/recipes')
-        })
-    })
-    .catch(err => {
-        console.log(err)
-        res.redirect('/recipes')
-    })
-}
-
-function editReview(req, res) {
-    Recipe.findById(req.params.recipeId)
-    .then(recipe => {
-        const review = recipe.reviews.id(req.params.reviewId)
-        if (review.author.equals(req.user.profile._id)) {
-            res.render('recipes/editReview', {
-                recipe, 
-                review,
-                title: 'Update Review'
-            })
-        } else {
-            throw new Error('🚫 Not authorized 🚫')
-        }
-    })
-    .catch(err => {
-        console.log(err)
-        res.redirect('/recipes')
-    })
-}
-
-function updateReview(req, res) {
-    Recipe.findById(req.params.recipeId)
-    .then(recipe => {
-        const review = recipe.reviews.id(req.params.reviewId)
-        if (review.author.equals(req.user.profile._id)) {
-            review.set(req.body)
-            recipe.save()
-        .then(() => {
-            res.redirect(`/recipes/${recipe._id}`)
-        })
-        .catch(err => {
-            console.log(err)
-            res.redirect('/recipes')
-        })
-    } else {
-        throw new Error('🚫 Not authorized 🚫')
+async function update(req, res) {
+  try {
+    const recipe = await Recipe.findById(req.params.recipeId)
+    if (!recipe) {
+      return res.status(404).json({ error: 'Recipe not found' })
     }
-    })
-    .catch(err => {
-        console.log(err)
-        res.redirect('/recipes')
-    })
+
+    if (!recipe.owner.equals(req.user.profile._id)) {
+      return res.status(403).json({ error: 'Not authorized' })
+    }
+
+    recipe.set(recipePayload(req.body))
+    await recipe.save()
+
+    const updatedRecipe = await loadRecipeWithRelations(recipe._id)
+    return res.json({ recipe: updatedRecipe })
+  } catch (err) {
+    console.log(err)
+    return res.status(400).json({ error: 'Unable to update recipe' })
+  }
 }
 
-function deleteReview(req, res) {
-    Recipe.findById(req.params.recipeId)
-    .then(recipe => {
-        const review = recipe.reviews.id(req.params.reviewId)
-        if (review.author.equals(req.user.profile._id)) {
-            recipe.reviews.remove(review)
-            recipe.save()
-            .then(() => {
-                res.redirect(`/recipes/${recipe._id}`)
-            })
-            .catch(err => {
-                console.log(err)
-                res.redirect('/recipes')
-            })
-        } else {
-            throw new Error('🚫 Not authorized 🚫')
-        }
-    })
-    .catch(err => {
-        console.log(err)
-        res.redirect('/recipes')
-    })
+async function deleteRecipe(req, res) {
+  try {
+    const recipe = await Recipe.findById(req.params.recipeId)
+    if (!recipe) {
+      return res.status(404).json({ error: 'Recipe not found' })
+    }
+
+    if (!recipe.owner.equals(req.user.profile._id)) {
+      return res.status(403).json({ error: 'Not authorized' })
+    }
+
+    await recipe.deleteOne()
+    return res.status(204).end()
+  } catch (err) {
+    console.log(err)
+    return res.status(400).json({ error: 'Unable to delete recipe' })
+  }
 }
 
+async function createReview(req, res) {
+  try {
+    const recipe = await Recipe.findById(req.params.recipeId)
+    if (!recipe) {
+      return res.status(404).json({ error: 'Recipe not found' })
+    }
 
+    recipe.reviews.push({
+      author: req.user.profile._id,
+      content: typeof req.body.content === 'string' ? req.body.content.trim() : '',
+      rating: Number(req.body.rating) || 1,
+    })
+    await recipe.save()
+
+    const updatedRecipe = await loadRecipeWithRelations(recipe._id)
+    return res.status(201).json({ recipe: updatedRecipe })
+  } catch (err) {
+    console.log(err)
+    return res.status(400).json({ error: 'Unable to create review' })
+  }
+}
+
+async function updateReview(req, res) {
+  try {
+    const recipe = await Recipe.findById(req.params.recipeId)
+    if (!recipe) {
+      return res.status(404).json({ error: 'Recipe not found' })
+    }
+
+    const review = recipe.reviews.id(req.params.reviewId)
+    if (!review) {
+      return res.status(404).json({ error: 'Review not found' })
+    }
+
+    if (!review.author.equals(req.user.profile._id)) {
+      return res.status(403).json({ error: 'Not authorized' })
+    }
+
+    review.set({
+      content: typeof req.body.content === 'string' ? req.body.content.trim() : '',
+      rating: Number(req.body.rating) || 1,
+    })
+
+    await recipe.save()
+    const updatedRecipe = await loadRecipeWithRelations(recipe._id)
+    return res.json({ recipe: updatedRecipe })
+  } catch (err) {
+    console.log(err)
+    return res.status(400).json({ error: 'Unable to update review' })
+  }
+}
+
+async function deleteReview(req, res) {
+  try {
+    const recipe = await Recipe.findById(req.params.recipeId)
+    if (!recipe) {
+      return res.status(404).json({ error: 'Recipe not found' })
+    }
+
+    const review = recipe.reviews.id(req.params.reviewId)
+    if (!review) {
+      return res.status(404).json({ error: 'Review not found' })
+    }
+
+    if (!review.author.equals(req.user.profile._id)) {
+      return res.status(403).json({ error: 'Not authorized' })
+    }
+
+    recipe.reviews.pull(review._id)
+    await recipe.save()
+    return res.status(204).end()
+  } catch (err) {
+    console.log(err)
+    return res.status(400).json({ error: 'Unable to delete review' })
+  }
+}
 
 export {
-    index, 
-    newRecipe as new, 
-    create, 
-    show, 
-    edit,
-    update,
-    deleteRecipe as delete,
-    createReview, 
-    editReview, 
-    updateReview, 
-    deleteReview
+  index,
+  random,
+  create,
+  importRecipe,
+  show,
+  update,
+  deleteRecipe as delete,
+  createReview,
+  updateReview,
+  deleteReview,
 }
