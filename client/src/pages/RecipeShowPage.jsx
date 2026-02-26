@@ -150,6 +150,14 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
+function titleize(value) {
+  return String(value || '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
 function getProfileId(user) {
   if (!user?.profile) {
     return null
@@ -758,6 +766,8 @@ function RecipeShowPage({ user }) {
         </div>
         <p id="author">From the kitchen of {recipe.owner?.name || 'Unknown'}...</p>
         {recipe.description ? <p>{recipe.description}</p> : null}
+        <p>Meal Category: {titleize(recipe.mealCategory || 'other')}</p>
+        <p>Cuisine: {titleize(recipe.cuisineType || 'other')}</p>
         {recipe.servings ? <p>Servings: {recipe.servings}</p> : null}
         <div className="servings-adjuster">
           <label htmlFor="servings-adjust-input">Adjust Servings:</label>

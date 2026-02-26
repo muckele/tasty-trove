@@ -12,6 +12,10 @@ router.get('/random', recipesCtrl.random)
 router.post('/', isLoggedIn, recipesCtrl.create)
 // POST /api/recipes/import
 router.post('/import', isLoggedIn, recipesCtrl.importRecipe)
+// POST /api/recipes/parse-text
+router.post('/parse-text', recipesCtrl.parseRecipeText)
+// POST /api/recipes/import-text
+router.post('/import-text', isLoggedIn, recipesCtrl.importRecipeFromText)
 // GET /api/recipes/:recipeId
 router.get('/:recipeId', recipesCtrl.show)
 // PUT /api/recipes/:recipeId

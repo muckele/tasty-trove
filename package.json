@@ -9,6 +9,7 @@
     "client:dev": "vite --config client/vite.config.js",
     "client:build": "vite build --config client/vite.config.js",
     "dev": "concurrently \"PORT=3001 npm run server:dev\" \"npm run client:dev\"",
+    "recipes:classify": "node ./scripts/reclassifyRecipes.js",
     "build": "npm run client:build",
     "start": "NODE_ENV=production node ./bin/www.js"
   },

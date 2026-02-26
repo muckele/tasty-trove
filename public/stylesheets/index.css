@@ -1,117 +1,379 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  background-color: #f8f8f8;
+  font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
+  background:
+    radial-gradient(circle at 20% 10%, #efe2cf 0%, rgba(239, 226, 207, 0.1) 45%),
+    radial-gradient(circle at 80% 20%, #dce8e5 0%, rgba(220, 232, 229, 0.1) 42%),
+    #f7f3ec;
+  color: #1f2f3f;
 }
 
-main {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #fff;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+.home-page {
+  max-width: 1140px;
+  margin: 36px auto 64px;
+  padding: 0 24px;
 }
 
-.welcome-section {
-  background-color: #2f3847;
-  color: #fff;
-  padding: 30px;
-  border-radius: 8px;
-  text-align: center;
-  margin-bottom: 30px;
+.home-hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #243747 0%, #2a4c58 58%, #355f62 100%);
+  color: #f8f4eb;
+  border-radius: 22px;
+  padding: 46px 42px;
+  box-shadow: 0 24px 42px rgba(23, 34, 46, 0.28);
+  animation: homeFadeUp 500ms ease-out;
 }
 
-h1 {
-  font-size: 36px;
+.home-hero::after {
+  content: "";
+  position: absolute;
+  width: 250px;
+  height: 250px;
+  right: -65px;
+  top: -95px;
+  background: radial-gradient(circle, rgba(201, 140, 58, 0.33) 0%, rgba(201, 140, 58, 0) 70%);
+}
+
+.hero-kicker {
+  margin: 0 0 14px;
+  letter-spacing: 0.2em;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  color: #d7e8db;
+}
+
+.home-hero h1 {
   margin: 0;
+  max-width: 760px;
+  line-height: 1.12;
+  font-size: clamp(2rem, 4.1vw, 3.2rem);
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+  font-weight: 700;
+}
+
+.hero-copy {
+  max-width: 620px;
+  margin: 16px 0 26px;
+  line-height: 1.6;
+  color: #e6efe9;
+  font-size: 1.08rem;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hero-action-primary,
+.hero-action-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 20px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: transform 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
+}
+
+.hero-action-primary {
+  background: #ca8d3f;
+  color: #1f2f3f;
+  box-shadow: 0 8px 20px rgba(202, 141, 63, 0.42);
+}
+
+.hero-action-secondary {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  color: #f8f4eb;
+}
+
+.hero-action-primary:hover,
+.hero-action-secondary:hover {
+  transform: translateY(-2px);
 }
 
 .avatar-container {
-  margin-top: 20px;
+  position: absolute;
+  right: 28px;
+  bottom: 24px;
 }
 
 .avatar-container img {
+  width: 78px;
+  height: 78px;
   border-radius: 50%;
-  max-width: 120px;
-  height: auto;
-  display: block;
-  margin: 0 auto;
+  border: 3px solid rgba(248, 244, 235, 0.85);
+  object-fit: cover;
 }
 
-#welcome-message {
-  color: #333;
-  font-size: 20px;
-  text-align: center;
-  margin-bottom: 30px;
+.featured-day {
+  margin-top: 24px;
+  animation: homeFadeUp 540ms ease-out;
 }
 
-.logo-section {
-  text-align: center;
-  margin-bottom: 30px;
+.featured-kicker {
+  margin: 0 0 10px;
+  color: #2f6466;
+  letter-spacing: 0.16em;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  font-weight: 700;
 }
 
-#logo {
-  max-width: 60%;
-  height: auto;
-  display: inline-block;
-  transition: transform 0.3s ease-in-out;
+.featured-card-link {
+  text-decoration: none;
+  color: inherit;
 }
 
-#logo:hover {
-  transform: scale(1.05);
+.featured-card {
+  display: grid;
+  grid-template-columns: minmax(200px, 290px) minmax(0, 1fr);
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid #decfac;
+  border-radius: 18px;
+  background: linear-gradient(110deg, #fffdf8 0%, #f5efe4 100%);
+  box-shadow: 0 14px 32px rgba(24, 41, 58, 0.12);
+  transition: transform 240ms ease, box-shadow 240ms ease;
+}
+
+.featured-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 36px rgba(24, 41, 58, 0.16);
+}
+
+.featured-card img {
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  object-fit: cover;
+}
+
+.featured-content {
+  padding: 24px 24px 22px;
+}
+
+.featured-meta {
+  margin: 0;
+  color: #6a786f;
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.featured-content h2 {
+  margin: 10px 0 12px;
+  color: #203344;
+  line-height: 1.18;
+  font-size: clamp(1.55rem, 2.8vw, 2.15rem);
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+}
+
+.featured-content p {
+  margin: 0;
+  color: #4f5d69;
+  line-height: 1.55;
+  max-width: 60ch;
+}
+
+.featured-cta {
+  display: inline-flex;
+  margin-top: 16px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  color: #f8f4eb;
+  background: #2f6466;
+  font-weight: 700;
+  font-size: 0.86rem;
+}
+
+.home-highlights {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.highlight-card {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(2px);
+  border: 1px solid rgba(36, 55, 71, 0.13);
+  border-radius: 14px;
+  padding: 20px 18px;
+  box-shadow: 0 8px 24px rgba(31, 47, 63, 0.06);
+  animation: homeFadeUp 560ms ease-out;
+}
+
+.highlight-card h2 {
+  margin: 0 0 9px;
+  font-size: 1.2rem;
+  color: #2a4c58;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+}
+
+.highlight-card p {
+  margin: 0;
+  color: #42525e;
+  line-height: 1.5;
 }
 
 .top-recipes {
-  margin-top: 40px;
+  margin-top: 44px;
 }
 
-.top-recipes h2 {
-  font-size: 28px;
-  color: #2f3847;
-  text-align: center;
-  margin-bottom: 20px;
+.section-headline {
+  margin-bottom: 18px;
+}
+
+.section-headline h2 {
+  margin: 0;
+  line-height: 1.2;
+  color: #203344;
+  font-size: clamp(1.7rem, 2.6vw, 2.3rem);
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+}
+
+.section-headline p {
+  margin: 10px 0 0;
+  color: #4d5d68;
 }
 
 .recipe-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  padding: 0;
-  list-style: none;
+  gap: 18px;
+}
+
+.recipe-card-link {
+  text-decoration: none;
+  color: inherit;
 }
 
 .recipe-card {
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  background: #fffdf9;
+  border-radius: 16px;
+  border: 1px solid #e7dece;
   overflow: hidden;
-  transition: transform 0.3s ease-in-out;
+  box-shadow: 0 10px 26px rgba(23, 40, 54, 0.1);
+  transition: transform 240ms ease, box-shadow 240ms ease;
+  animation: homeFadeUp 620ms ease-out both;
 }
 
-.recipe-card img {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
+.recipe-card-link:nth-child(2) .recipe-card {
+  animation-delay: 120ms;
 }
 
-.recipe-info {
-  padding: 15px;
+.recipe-card-link:nth-child(3) .recipe-card {
+  animation-delay: 220ms;
 }
 
-.recipe-info h3 {
-  font-size: 20px;
-  color: #c57f1e;
-  margin: 10px 0 5px 0;
-}
-
-.recipe-info p {
-  font-size: 16px;
-  color: #555;
+.recipe-card-link:nth-child(4) .recipe-card {
+  animation-delay: 280ms;
 }
 
 .recipe-card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 16px 30px rgba(23, 40, 54, 0.16);
+}
+
+.recipe-card img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+}
+
+.recipe-info {
+  padding: 16px 16px 18px;
+}
+
+.recipe-meta {
+  margin: 0;
+  color: #6d7b74;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.recipe-info h3 {
+  margin: 9px 0 8px;
+  font-size: 1.28rem;
+  line-height: 1.28;
+  color: #1f2f3f;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+}
+
+.recipe-info p {
+  margin: 0;
+  color: #4d5d68;
+  line-height: 1.45;
+}
+
+.no-home-recipes {
+  margin: 18px 0 0;
+  color: #5a6772;
+}
+
+@keyframes homeFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 900px) {
+  .home-hero {
+    padding: 34px 26px 96px;
+  }
+
+  .featured-card {
+    grid-template-columns: 1fr;
+  }
+
+  .featured-card img {
+    min-height: 180px;
+    max-height: 260px;
+  }
+
+  .home-highlights {
+    grid-template-columns: 1fr;
+  }
+
+  .avatar-container {
+    right: 22px;
+    bottom: 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-page {
+    margin-top: 18px;
+    padding: 0 14px;
+  }
+
+  .home-hero {
+    border-radius: 16px;
+    padding: 28px 18px 94px;
+  }
+
+  .hero-copy {
+    font-size: 1rem;
+  }
+
+  .hero-action-primary,
+  .hero-action-secondary {
+    width: 100%;
+  }
 }

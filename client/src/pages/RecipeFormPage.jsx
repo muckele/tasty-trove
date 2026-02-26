@@ -7,11 +7,46 @@ const initialForm = {
   name: '',
   imageUrl: '',
   servings: '',
+  mealCategory: '',
+  cuisineType: '',
   totalTime: '',
   prepTime: '',
   cookTime: '',
   ingredients: '',
 }
+
+const MEAL_CATEGORY_OPTIONS = [
+  { value: 'breakfast', label: 'Breakfast' },
+  { value: 'lunch', label: 'Lunch' },
+  { value: 'dinner', label: 'Dinner' },
+  { value: 'snack', label: 'Snack' },
+  { value: 'appetizer', label: 'Appetizer' },
+  { value: 'side', label: 'Side' },
+  { value: 'dessert', label: 'Dessert' },
+  { value: 'drink', label: 'Drink' },
+  { value: 'soup', label: 'Soup' },
+  { value: 'salad', label: 'Salad' },
+  { value: 'sauce', label: 'Sauce' },
+  { value: 'other', label: 'Other' },
+]
+
+const CUISINE_TYPE_OPTIONS = [
+  { value: 'american', label: 'American' },
+  { value: 'mexican', label: 'Mexican' },
+  { value: 'italian', label: 'Italian' },
+  { value: 'chinese', label: 'Chinese' },
+  { value: 'japanese', label: 'Japanese' },
+  { value: 'indian', label: 'Indian' },
+  { value: 'thai', label: 'Thai' },
+  { value: 'french', label: 'French' },
+  { value: 'greek', label: 'Greek' },
+  { value: 'mediterranean', label: 'Mediterranean' },
+  { value: 'korean', label: 'Korean' },
+  { value: 'vietnamese', label: 'Vietnamese' },
+  { value: 'middle eastern', label: 'Middle Eastern' },
+  { value: 'spanish', label: 'Spanish' },
+  { value: 'other', label: 'Other' },
+]
 
 function RecipeFormPage({ mode, user, sessionLoading }) {
   const { recipeId } = useParams()
@@ -28,6 +63,10 @@ function RecipeFormPage({ mode, user, sessionLoading }) {
   const [importUrl, setImportUrl] = useState('')
   const [importing, setImporting] = useState(false)
   const [importError, setImportError] = useState('')
+  const [importText, setImportText] = useState('')
+  const [importingText, setImportingText] = useState(false)
+  const [importTextError, setImportTextError] = useState('')
+  const [importTextPreviewReady, setImportTextPreviewReady] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -44,6 +83,8 @@ function RecipeFormPage({ mode, user, sessionLoading }) {
             name: data.recipe.name || '',
             imageUrl: data.recipe.imageUrl || '',
             servings: data.recipe.servings || '',
+            mealCategory: data.recipe.mealCategory || '',
+            cuisineType: data.recipe.cuisineType || '',
             totalTime: data.recipe.totalTime ?? '',
             prepTime: data.recipe.prepTime ?? '',
             cookTime: data.recipe.cookTime ?? '',
@@ -76,7 +117,7 @@ function RecipeFormPage({ mode, user, sessionLoading }) {
 
   if (sessionLoading && !user) {
     return (
-      <main>
+      <main className="recipe-editor-page">
         <h1>Loading...</h1>
       </main>
     )
@@ -88,7 +129,7 @@ function RecipeFormPage({ mode, user, sessionLoading }) {
 
   if (loading) {
     return (
-      <main>
+      <main className="recipe-editor-page">
         <h1>Loading recipe...</h1>
       </main>
     )
@@ -118,6 +159,8 @@ function RecipeFormPage({ mode, user, sessionLoading }) {
       name: form.name,
       imageUrl: form.imageUrl,
       servings: form.servings,
+      mealCategory: form.mealCategory,
+      cuisineType: form.cuisineType,
       totalTime: Number(form.totalTime) || 0,
       prepTime: Number(form.prepTime) || 0,
       cookTime: Number(form.cookTime) || 0,
@@ -158,8 +201,58 @@ function RecipeFormPage({ mode, user, sessionLoading }) {
     }
   }
 
+  async function handleImportRecipeText(event) {
+    event.preventDefault()
+    setImportTextError('')
+    setImportTextPreviewReady(false)
+
+    if (!importText.trim()) {
+      setImportTextError('Please paste recipe text first.')
+      return
+    }
+
+    setImportingText(true)
+
+    try {
+      const data = await api.parseRecipeFromText(importText.trim())
+      const parsedRecipe = data.recipe || {}
+
+      setForm((current) => ({
+        ...current,
+        name: parsedRecipe.name || '',
+        imageUrl: parsedRecipe.imageUrl || '',
+        servings: parsedRecipe.servings || '',
+        mealCategory: parsedRecipe.mealCategory || '',
+        cuisineType: parsedRecipe.cuisineType || '',
+        totalTime: parsedRecipe.totalTime ?? '',
+        prepTime: parsedRecipe.prepTime ?? '',
+        cookTime: parsedRecipe.cookTime ?? '',
+        ingredients: Array.isArray(parsedRecipe.ingredients)
+          ? parsedRecipe.ingredients.join(', ')
+          : parsedRecipe.ingredients || '',
+      }))
+
+      setPreparationSteps(
+        Array.isArray(parsedRecipe.preparation) && parsedRecipe.preparation.length
+          ? parsedRecipe.preparation
+          : ['']
+      )
+
+      setImportTextPreviewReady(true)
+    } catch (err) {
+      console.log(err)
+      setImportTextError(err.message || 'Unable to import recipe text.')
+    } finally {
+      setImportingText(false)
+    }
+  }
+
   const recipeForm = (
-    <form id={isEditMode ? 'edit-form' : 'new-form'} onSubmit={handleSubmit}>
+    <form
+      id={isEditMode ? 'edit-form' : 'new-form'}
+      className="recipe-editor-form"
+      onSubmit={handleSubmit}
+    >
       <label htmlFor="name-input">Name:</label>
       <input
         type="text"
@@ -189,6 +282,36 @@ function RecipeFormPage({ mode, user, sessionLoading }) {
         value={form.servings}
         onChange={(event) => setField('servings', event.target.value)}
       />
+
+      <label htmlFor="meal-category-input">Meal Category:</label>
+      <select
+        name="mealCategory"
+        id="meal-category-input"
+        value={form.mealCategory}
+        onChange={(event) => setField('mealCategory', event.target.value)}
+      >
+        <option value="">Auto-detect</option>
+        {MEAL_CATEGORY_OPTIONS.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+
+      <label htmlFor="cuisine-type-input">Cuisine Type:</label>
+      <select
+        name="cuisineType"
+        id="cuisine-type-input"
+        value={form.cuisineType}
+        onChange={(event) => setField('cuisineType', event.target.value)}
+      >
+        <option value="">Auto-detect</option>
+        {CUISINE_TYPE_OPTIONS.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
 
       <label htmlFor="total-time-input">Total Time:</label>
       <input
@@ -259,7 +382,7 @@ function RecipeFormPage({ mode, user, sessionLoading }) {
   )
 
   return (
-    <main>
+    <main className={`recipe-editor-page ${isEditMode ? 'recipe-editor-page--edit' : ''}`}>
       <h1>{isEditMode ? 'Edit Recipe' : 'Create a New Recipe'}</h1>
       {!isEditMode ? (
         <section className="import-recipe-card">
@@ -279,6 +402,33 @@ function RecipeFormPage({ mode, user, sessionLoading }) {
             </button>
           </form>
           {importError ? <p className="import-error">{importError}</p> : null}
+        </section>
+      ) : null}
+      {!isEditMode ? (
+        <section className="import-recipe-card">
+          <h2>Import Recipe From Text</h2>
+          <p>
+            Paste a full recipe from ChatGPT or another source, and Tasty Trove will
+            structure it into a recipe card.
+          </p>
+          <form className="import-recipe-form import-text-form" onSubmit={handleImportRecipeText}>
+            <textarea
+              id="import-text-input"
+              placeholder={`Example:\nClassic Pancakes\nServings: 4\nPrep Time: 10 minutes\nCook Time: 15 minutes\n\nIngredients:\n- 1 cup flour\n- 2 tbsp sugar\n\nInstructions:\n1. Mix ingredients.\n2. Cook on skillet.`}
+              value={importText}
+              onChange={(event) => setImportText(event.target.value)}
+              required
+            />
+            <button type="submit" id="import-recipe-button" disabled={importingText}>
+              {importingText ? 'Generating Preview...' : 'Generate Preview'}
+            </button>
+          </form>
+          {importTextError ? <p className="import-error">{importTextError}</p> : null}
+          {importTextPreviewReady ? (
+            <p className="import-success">
+              Preview loaded. Review/edit the fields below, then click Create Recipe.
+            </p>
+          ) : null}
         </section>
       ) : null}
       {isEditMode ? <section>{recipeForm}</section> : recipeForm}

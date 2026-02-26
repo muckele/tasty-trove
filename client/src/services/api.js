@@ -35,10 +35,25 @@ const api = {
   getHome() {
     return request('/api/home')
   },
-  listRecipes(query = '') {
+  listRecipes(filters = {}) {
+    const normalizedFilters =
+      typeof filters === 'string' ? { query: filters } : filters
+
+    const query = String(normalizedFilters.query || '').trim()
+    const mealCategory = String(normalizedFilters.mealCategory || '').trim()
+    const cuisineType = String(normalizedFilters.cuisineType || '').trim()
+
     const params = new URLSearchParams()
-    if (query.trim()) {
-      params.set('query', query.trim())
+    if (query) {
+      params.set('query', query)
+    }
+
+    if (mealCategory) {
+      params.set('mealCategory', mealCategory)
+    }
+
+    if (cuisineType) {
+      params.set('cuisineType', cuisineType)
     }
 
     const suffix = params.toString() ? `?${params.toString()}` : ''
@@ -57,6 +72,18 @@ const api = {
     return request('/api/recipes/import', {
       method: 'POST',
       body: JSON.stringify({ url }),
+    })
+  },
+  importRecipeFromText(text) {
+    return request('/api/recipes/import-text', {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    })
+  },
+  parseRecipeFromText(text) {
+    return request('/api/recipes/parse-text', {
+      method: 'POST',
+      body: JSON.stringify({ text }),
     })
   },
   updateRecipe(recipeId, payload) {

@@ -1,4 +1,8 @@
 import mongoose from 'mongoose'
+import {
+    MEAL_CATEGORY_OPTIONS,
+    CUISINE_TYPE_OPTIONS
+} from '../services/recipeClassification.js'
 
 const Schema = mongoose.Schema
 
@@ -23,6 +27,18 @@ const recipeSchema = new Schema({
     description: String,
     sourceUrl: String,
     servings: String,
+    mealCategory: {
+        type: String,
+        enum: MEAL_CATEGORY_OPTIONS,
+        default: 'other',
+        index: true
+    },
+    cuisineType: {
+        type: String,
+        enum: CUISINE_TYPE_OPTIONS,
+        default: 'other',
+        index: true
+    },
     imageUrl: String,
     totalTime: Number,
     prepTime: Number,

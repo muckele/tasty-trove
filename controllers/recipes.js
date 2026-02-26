@@ -1,5 +1,15 @@
 import { Recipe } from '../models/recipe.js'
 import { scrapeRecipeFromUrl } from '../services/recipeImporter.js'
+import { parseRecipeFromText } from '../services/recipeTextImporter.js'
+import {
+  classifyRecipeMetadata,
+  normalizeMealCategory,
+  normalizeCuisineType,
+} from '../services/recipeClassification.js'
+
+function escapeRegExp(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
 
 function normalizeStringArray(value, delimiter = ',') {
   if (Array.isArray(value)) {
@@ -18,7 +28,7 @@ function normalizeStringArray(value, delimiter = ',') {
   return []
 }
 
-function recipePayload(body) {
+function recipePayload(body, existingRecipe = null) {
   const payload = {
     name: typeof body.name === 'string' ? body.name.trim() : '',
     imageUrl: typeof body.imageUrl === 'string' ? body.imageUrl.trim() : '',
@@ -40,12 +50,54 @@ function recipePayload(body) {
     payload.servings = typeof body.servings === 'string' ? body.servings.trim() : ''
   }
 
+  if (body.mealCategory !== undefined) {
+    payload.mealCategory = normalizeMealCategory(body.mealCategory)
+  }
+
+  if (body.cuisineType !== undefined) {
+    payload.cuisineType = normalizeCuisineType(body.cuisineType)
+  }
+
   if (body.ingredients !== undefined) {
     payload.ingredients = normalizeStringArray(body.ingredients)
   }
 
   if (body.preparation !== undefined) {
     payload.preparation = normalizeStringArray(body.preparation, '\n')
+  }
+
+  const classificationInput = {
+    name: payload.name || existingRecipe?.name || '',
+    description:
+      payload.description !== undefined
+        ? payload.description
+        : existingRecipe?.description || '',
+    sourceUrl:
+      payload.sourceUrl !== undefined
+        ? payload.sourceUrl
+        : existingRecipe?.sourceUrl || '',
+    ingredients:
+      payload.ingredients !== undefined
+        ? payload.ingredients
+        : existingRecipe?.ingredients || [],
+    preparation:
+      payload.preparation !== undefined
+        ? payload.preparation
+        : existingRecipe?.preparation || [],
+  }
+
+  const inferredClassification = classifyRecipeMetadata(classificationInput)
+
+  if (!payload.mealCategory) {
+    payload.mealCategory =
+      normalizeMealCategory(existingRecipe?.mealCategory) ||
+      inferredClassification.mealCategory
+  }
+
+  if (!payload.cuisineType) {
+    payload.cuisineType =
+      normalizeCuisineType(existingRecipe?.cuisineType) ||
+      inferredClassification.cuisineType
   }
 
   return payload
@@ -61,7 +113,28 @@ async function loadRecipeWithRelations(recipeId) {
 async function index(req, res) {
   try {
     const nameQuery = (req.query.query || '').trim()
-    const filter = nameQuery ? { name: new RegExp(nameQuery, 'i') } : {}
+    const mealCategory = normalizeMealCategory(req.query.mealCategory)
+    const cuisineType = normalizeCuisineType(req.query.cuisineType)
+    const filter = {}
+
+    if (nameQuery) {
+      const escapedQuery = escapeRegExp(nameQuery)
+      const searchRegex = new RegExp(escapedQuery, 'i')
+      filter.$or = [
+        { name: searchRegex },
+        { description: searchRegex },
+        { ingredients: searchRegex },
+      ]
+    }
+
+    if (mealCategory) {
+      filter.mealCategory = mealCategory
+    }
+
+    if (cuisineType) {
+      filter.cuisineType = cuisineType
+    }
+
     const recipes = await Recipe.find(filter).sort({ createdAt: -1 })
     return res.json({ recipes })
   } catch (err) {
@@ -115,6 +188,38 @@ async function importRecipe(req, res) {
   }
 }
 
+async function importRecipeFromText(req, res) {
+  try {
+    const importedData = parseRecipeFromText(req.body.text)
+    const payload = recipePayload(importedData)
+    payload.owner = req.user.profile._id
+
+    const recipe = await Recipe.create(payload)
+    const hydratedRecipe = await loadRecipeWithRelations(recipe._id)
+
+    return res.status(201).json({ recipe: hydratedRecipe })
+  } catch (err) {
+    console.log(err)
+    return res.status(400).json({
+      error: err.message || 'Unable to import recipe from text',
+    })
+  }
+}
+
+function parseRecipeText(req, res) {
+  try {
+    const importedData = parseRecipeFromText(req.body.text)
+    const payload = recipePayload(importedData)
+
+    return res.json({ recipe: payload })
+  } catch (err) {
+    console.log(err)
+    return res.status(400).json({
+      error: err.message || 'Unable to parse recipe text',
+    })
+  }
+}
+
 async function show(req, res) {
   try {
     const recipe = await loadRecipeWithRelations(req.params.recipeId)
@@ -140,7 +245,7 @@ async function update(req, res) {
       return res.status(403).json({ error: 'Not authorized' })
     }
 
-    recipe.set(recipePayload(req.body))
+    recipe.set(recipePayload(req.body, recipe))
     await recipe.save()
 
     const updatedRecipe = await loadRecipeWithRelations(recipe._id)
@@ -252,6 +357,8 @@ export {
   random,
   create,
   importRecipe,
+  parseRecipeText,
+  importRecipeFromText,
   show,
   update,
   deleteRecipe as delete,
