@@ -12,6 +12,8 @@ import './config/passport.js'
 import { router as indexRouter } from './routes/index.js'
 import { router as authRouter } from './routes/auth.js'
 import { router as recipesRouter } from './routes/recipes.js'
+import { router as plannerRouter } from './routes/planner.js'
+import { router as libraryRouter } from './routes/library.js'
 
 const app = express()
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -37,6 +39,8 @@ app.use(passport.session())
 
 app.use('/api', indexRouter)
 app.use('/api/recipes', recipesRouter)
+app.use('/api/planner', plannerRouter)
+app.use('/api/library', libraryRouter)
 app.use('/auth', authRouter)
 
 if (process.env.NODE_ENV === 'production') {

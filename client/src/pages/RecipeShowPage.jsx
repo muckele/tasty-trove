@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { usePageStylesheets } from '../hooks/usePageStylesheets'
 import { api } from '../services/api'
 
@@ -578,26 +578,128 @@ function convertIngredientUnits(ingredient, unitMode) {
   return `${quantityText} ${inflectedUnit}${suffix}`.trim()
 }
 
+function formatDateTime(value) {
+  if (!value) {
+    return 'Unknown'
+  }
+
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) {
+    return 'Unknown'
+  }
+
+  return parsed.toLocaleString()
+}
+
+function getRecipeOwnerId(recipe) {
+  if (!recipe?.owner) {
+    return ''
+  }
+
+  return String(recipe.owner?._id || recipe.owner)
+}
+
+function buildShareUrl(recipe, fallbackShareToken = '') {
+  if (!recipe?._id || typeof window === 'undefined') {
+    return ''
+  }
+
+  const baseUrl = `${window.location.origin}/recipes/${recipe._id}`
+  if (recipe.visibility !== 'private') {
+    return baseUrl
+  }
+
+  const token = String(recipe.shareToken || fallbackShareToken || '').trim()
+  if (!token) {
+    return ''
+  }
+
+  return `${baseUrl}?shareToken=${encodeURIComponent(token)}`
+}
+
 function RecipeShowPage({ user }) {
   usePageStylesheets(['/stylesheets/recipes/show.css'])
 
-  const { recipeId } = useParams()
+  const { recipeId, shareToken: routeShareToken } = useParams()
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const queryShareToken = String(searchParams.get('shareToken') || '').trim()
+  const effectiveShareToken = routeShareToken || queryShareToken
   const [recipe, setRecipe] = useState(null)
+  const [loadingRecipe, setLoadingRecipe] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [loadError, setLoadError] = useState('')
   const [newReview, setNewReview] = useState({ content: '', rating: 1 })
   const [desiredServings, setDesiredServings] = useState(1)
   const [unitMode, setUnitMode] = useState('original')
   const [savingServings, setSavingServings] = useState(false)
   const [saveServingsError, setSaveServingsError] = useState('')
   const [saveServingsSuccess, setSaveServingsSuccess] = useState('')
+  const [cookModeEnabled, setCookModeEnabled] = useState(false)
+  const [cookStepIndex, setCookStepIndex] = useState(0)
+  const [library, setLibrary] = useState(null)
+  const [libraryLoading, setLibraryLoading] = useState(false)
+  const [libraryError, setLibraryError] = useState('')
+  const [collectionSelection, setCollectionSelection] = useState('')
+  const [libraryActionBusy, setLibraryActionBusy] = useState(false)
+  const [ownerNoteDraft, setOwnerNoteDraft] = useState('')
+  const [ownerNoteSaving, setOwnerNoteSaving] = useState(false)
+  const [ownerNoteStatus, setOwnerNoteStatus] = useState('')
+  const [ownerNoteError, setOwnerNoteError] = useState('')
+  const [versions, setVersions] = useState([])
+  const [versionsLoading, setVersionsLoading] = useState(false)
+  const [versionsError, setVersionsError] = useState('')
+  const [restoringVersionId, setRestoringVersionId] = useState('')
+  const [shareBusy, setShareBusy] = useState(false)
+  const [shareError, setShareError] = useState('')
+  const [shareStatus, setShareStatus] = useState('')
+
+  const userProfileId = getProfileId(user)
+  const activeRecipeId = String(recipe?._id || recipeId || '')
+
+  const isRecipeOwner = useMemo(() => {
+    if (!userProfileId || !recipe) {
+      return false
+    }
+
+    return getRecipeOwnerId(recipe) === userProfileId
+  }, [recipe, userProfileId])
+
+  const shareUrl = useMemo(
+    () => buildShareUrl(recipe, effectiveShareToken),
+    [recipe, effectiveShareToken]
+  )
+
+  const favoriteRecipeIds = useMemo(() => {
+    return new Set(
+      (library?.favoriteRecipes || []).map((entry) => String(entry._id))
+    )
+  }, [library?.favoriteRecipes])
+
+  const isFavorited = useMemo(() => {
+    if (!activeRecipeId) {
+      return false
+    }
+
+    return favoriteRecipeIds.has(activeRecipeId)
+  }, [favoriteRecipeIds, activeRecipeId])
+
+  const baseServings = useMemo(
+    () => extractServingCount(recipe?.servings),
+    [recipe?.servings]
+  )
 
   useEffect(() => {
     let cancelled = false
 
     async function loadRecipe() {
+      setLoadingRecipe(true)
+      setLoadError('')
+
       try {
-        const data = await api.getRecipe(recipeId)
+        const data = routeShareToken
+          ? await api.getSharedRecipe(routeShareToken)
+          : await api.getRecipe(recipeId, effectiveShareToken)
         if (!cancelled) {
           setRecipe(data.recipe)
           setNotFound(false)
@@ -605,7 +707,13 @@ function RecipeShowPage({ user }) {
       } catch (err) {
         console.log(err)
         if (!cancelled) {
-          setNotFound(true)
+          setRecipe(null)
+          setNotFound(err.status === 404)
+          setLoadError(err.status === 404 ? '' : err.message || 'Unable to load recipe')
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingRecipe(false)
         }
       }
     }
@@ -615,19 +723,93 @@ function RecipeShowPage({ user }) {
     return () => {
       cancelled = true
     }
-  }, [recipeId])
-
-  const baseServings = useMemo(
-    () => extractServingCount(recipe?.servings),
-    [recipe?.servings]
-  )
+  }, [recipeId, routeShareToken, effectiveShareToken])
 
   useEffect(() => {
     setDesiredServings(baseServings)
     setUnitMode('original')
     setSaveServingsError('')
     setSaveServingsSuccess('')
-  }, [baseServings, recipe?._id])
+    setCookModeEnabled(false)
+    setCookStepIndex(0)
+    setOwnerNoteDraft(recipe?.ownerNote || '')
+    setOwnerNoteStatus('')
+    setOwnerNoteError('')
+    setShareError('')
+    setShareStatus('')
+    setCollectionSelection('')
+  }, [baseServings, recipe?._id, recipe?.ownerNote])
+
+  useEffect(() => {
+    if (!user) {
+      setLibrary(null)
+      return
+    }
+
+    let cancelled = false
+
+    async function loadLibrary() {
+      setLibraryLoading(true)
+      setLibraryError('')
+      try {
+        const data = await api.getLibrary()
+        if (!cancelled) {
+          setLibrary(data.library || null)
+        }
+      } catch (err) {
+        console.log(err)
+        if (!cancelled) {
+          setLibraryError(err.message || 'Unable to load favorites and collections.')
+        }
+      } finally {
+        if (!cancelled) {
+          setLibraryLoading(false)
+        }
+      }
+    }
+
+    loadLibrary()
+
+    return () => {
+      cancelled = true
+    }
+  }, [user?._id, recipe?._id])
+
+  useEffect(() => {
+    if (!isRecipeOwner || !activeRecipeId) {
+      setVersions([])
+      return
+    }
+
+    let cancelled = false
+
+    async function loadVersions() {
+      setVersionsLoading(true)
+      setVersionsError('')
+
+      try {
+        const data = await api.listRecipeVersions(activeRecipeId)
+        if (!cancelled) {
+          setVersions(data.versions || [])
+        }
+      } catch (err) {
+        console.log(err)
+        if (!cancelled) {
+          setVersionsError(err.message || 'Unable to load version history.')
+        }
+      } finally {
+        if (!cancelled) {
+          setVersionsLoading(false)
+        }
+      }
+    }
+
+    loadVersions()
+
+    return () => {
+      cancelled = true
+    }
+  }, [isRecipeOwner, activeRecipeId])
 
   const scaledIngredients = useMemo(() => {
     const ingredients = recipe?.ingredients || []
@@ -646,14 +828,11 @@ function RecipeShowPage({ user }) {
     )
   }, [scaledIngredients, unitMode])
 
-  const userProfileId = getProfileId(user)
-  const isRecipeOwner = useMemo(() => {
-    if (!userProfileId || !recipe?.owner?._id) {
-      return false
-    }
-
-    return recipe.owner._id === userProfileId
-  }, [recipe, userProfileId])
+  const preparationSteps = recipe?.preparation || []
+  const cappedCookStepIndex = Math.min(
+    Math.max(cookStepIndex, 0),
+    Math.max(preparationSteps.length - 1, 0)
+  )
 
   const averageRating = useMemo(() => {
     if (!recipe?.reviews?.length) {
@@ -669,23 +848,42 @@ function RecipeShowPage({ user }) {
 
   async function refreshRecipe() {
     try {
-      const data = await api.getRecipe(recipeId)
+      const data = routeShareToken
+        ? await api.getSharedRecipe(routeShareToken)
+        : await api.getRecipe(recipeId, effectiveShareToken)
       setRecipe(data.recipe)
       setNotFound(false)
+      setLoadError('')
     } catch (err) {
       console.log(err)
-      setNotFound(true)
+      setNotFound(err.status === 404)
+      setLoadError(err.status === 404 ? '' : err.message || 'Unable to refresh recipe')
+    }
+  }
+
+  async function refreshVersions() {
+    if (!isRecipeOwner || !activeRecipeId) {
+      return
+    }
+
+    try {
+      const data = await api.listRecipeVersions(activeRecipeId)
+      setVersions(data.versions || [])
+      setVersionsError('')
+    } catch (err) {
+      console.log(err)
+      setVersionsError(err.message || 'Unable to load version history.')
     }
   }
 
   async function handleDeleteRecipe() {
     const shouldDelete = window.confirm('Delete this recipe?')
-    if (!shouldDelete) {
+    if (!shouldDelete || !activeRecipeId) {
       return
     }
 
     try {
-      await api.deleteRecipe(recipeId)
+      await api.deleteRecipe(activeRecipeId)
       navigate('/recipes')
     } catch (err) {
       console.log(err)
@@ -694,9 +892,16 @@ function RecipeShowPage({ user }) {
 
   async function handleReviewSubmit(event) {
     event.preventDefault()
+    if (!activeRecipeId) {
+      return
+    }
 
     try {
-      const data = await api.createReview(recipeId, newReview)
+      const data = await api.createReview(
+        activeRecipeId,
+        newReview,
+        effectiveShareToken
+      )
       setRecipe(data.recipe)
       setNewReview({ content: '', rating: 1 })
     } catch (err) {
@@ -706,12 +911,12 @@ function RecipeShowPage({ user }) {
 
   async function handleDeleteReview(reviewId) {
     const shouldDelete = window.confirm('Delete this review?')
-    if (!shouldDelete) {
+    if (!shouldDelete || !activeRecipeId) {
       return
     }
 
     try {
-      await api.deleteReview(recipeId, reviewId)
+      await api.deleteReview(activeRecipeId, reviewId)
       await refreshRecipe()
     } catch (err) {
       console.log(err)
@@ -719,7 +924,7 @@ function RecipeShowPage({ user }) {
   }
 
   async function handleSaveScaledServings() {
-    if (!isRecipeOwner || !recipe) {
+    if (!isRecipeOwner || !recipe || !activeRecipeId) {
       return
     }
 
@@ -737,12 +942,15 @@ function RecipeShowPage({ user }) {
       totalTime: Number(recipe.totalTime) || 0,
       prepTime: Number(recipe.prepTime) || 0,
       cookTime: Number(recipe.cookTime) || 0,
+      visibility: recipe.visibility || 'public',
+      dietaryTags: recipe.dietaryTags || [],
+      allergenTags: recipe.allergenTags || [],
       ingredients: displayedIngredients,
       preparation: recipe.preparation || [],
     }
 
     try {
-      const data = await api.updateRecipe(recipeId, payload)
+      const data = await api.updateRecipe(activeRecipeId, payload)
       setRecipe(data.recipe)
       setUnitMode('original')
       setSaveServingsSuccess('Scaled servings saved to this recipe.')
@@ -754,11 +962,154 @@ function RecipeShowPage({ user }) {
     }
   }
 
+  async function handleToggleFavorite() {
+    if (!user || !activeRecipeId) {
+      return
+    }
+
+    setLibraryActionBusy(true)
+    setLibraryError('')
+
+    try {
+      const data = isFavorited
+        ? await api.removeFavorite(activeRecipeId)
+        : await api.addFavorite(activeRecipeId)
+      setLibrary(data.library || null)
+    } catch (err) {
+      console.log(err)
+      setLibraryError(err.message || 'Unable to update favorites.')
+    } finally {
+      setLibraryActionBusy(false)
+    }
+  }
+
+  async function handleAddToCollection() {
+    if (!collectionSelection || !activeRecipeId || !user) {
+      return
+    }
+
+    setLibraryActionBusy(true)
+    setLibraryError('')
+
+    try {
+      const data = await api.addRecipeToCollection(collectionSelection, activeRecipeId)
+      setLibrary(data.library || null)
+      setCollectionSelection('')
+    } catch (err) {
+      console.log(err)
+      setLibraryError(err.message || 'Unable to add recipe to collection.')
+    } finally {
+      setLibraryActionBusy(false)
+    }
+  }
+
+  async function handleSaveOwnerNote() {
+    if (!isRecipeOwner || !activeRecipeId) {
+      return
+    }
+
+    setOwnerNoteSaving(true)
+    setOwnerNoteStatus('')
+    setOwnerNoteError('')
+
+    try {
+      const data = await api.updateOwnerNote(activeRecipeId, ownerNoteDraft)
+      setRecipe(data.recipe)
+      setOwnerNoteDraft(data.ownerNote || '')
+      setOwnerNoteStatus('Private note saved.')
+    } catch (err) {
+      console.log(err)
+      setOwnerNoteError(err.message || 'Unable to save note.')
+    } finally {
+      setOwnerNoteSaving(false)
+    }
+  }
+
+  async function handleRestoreVersion(versionId) {
+    if (!isRecipeOwner || !activeRecipeId) {
+      return
+    }
+
+    const shouldRestore = window.confirm(
+      'Restore this version? Your current recipe will be saved as a new version first.'
+    )
+    if (!shouldRestore) {
+      return
+    }
+
+    setRestoringVersionId(versionId)
+    setVersionsError('')
+
+    try {
+      const data = await api.restoreRecipeVersion(activeRecipeId, versionId)
+      setRecipe(data.recipe)
+      await refreshVersions()
+    } catch (err) {
+      console.log(err)
+      setVersionsError(err.message || 'Unable to restore version.')
+    } finally {
+      setRestoringVersionId('')
+    }
+  }
+
+  async function handleRegenerateShareLink() {
+    if (!isRecipeOwner || !activeRecipeId) {
+      return
+    }
+
+    setShareBusy(true)
+    setShareError('')
+    setShareStatus('')
+
+    try {
+      const data = await api.regenerateShareToken(activeRecipeId)
+      setRecipe(data.recipe)
+      setShareStatus('Share link refreshed.')
+    } catch (err) {
+      console.log(err)
+      setShareError(err.message || 'Unable to generate share link.')
+    } finally {
+      setShareBusy(false)
+    }
+  }
+
+  async function handleCopyShareUrl() {
+    if (!shareUrl) {
+      setShareError('No share URL available.')
+      return
+    }
+
+    if (!navigator?.clipboard?.writeText) {
+      setShareError('Clipboard is not available in this browser.')
+      return
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      setShareError('')
+      setShareStatus('Share URL copied to clipboard.')
+    } catch (err) {
+      console.log(err)
+      setShareError('Unable to copy share URL.')
+    }
+  }
+
+  if (loadingRecipe) {
+    return (
+      <main className="recipe-show-page">
+        <section className="recipe-shell recipe-shell--status">
+          <h1>Loading recipe...</h1>
+        </section>
+      </main>
+    )
+  }
+
   if (!recipe) {
     return (
       <main className="recipe-show-page">
         <section className="recipe-shell recipe-shell--status">
-          <h1>{notFound ? 'Recipe not found.' : 'Loading recipe...'}</h1>
+          <h1>{notFound ? 'Recipe not found.' : 'Unable to load recipe.'}</h1>
+          {loadError ? <p>{loadError}</p> : null}
         </section>
       </main>
     )
@@ -795,6 +1146,22 @@ function RecipeShowPage({ user }) {
               {recipe.servings}
             </p>
           ) : null}
+          <p>
+            <span>Visibility</span>
+            {titleize(recipe.visibility || 'public')}
+          </p>
+        </div>
+        <div className="recipe-tag-row">
+          {(recipe.dietaryTags || []).map((tag) => (
+            <span key={`dietary-${tag}`} className="recipe-tag recipe-tag--dietary">
+              {titleize(tag)}
+            </span>
+          ))}
+          {(recipe.allergenTags || []).map((tag) => (
+            <span key={`allergen-${tag}`} className="recipe-tag recipe-tag--allergen">
+              Contains {titleize(tag)}
+            </span>
+          ))}
         </div>
         <div className="servings-adjuster">
           <label htmlFor="servings-adjust-input">Adjust Servings</label>
@@ -860,6 +1227,33 @@ function RecipeShowPage({ user }) {
             </a>
           </p>
         ) : null}
+        <div className="share-panel">
+          <h3>Share</h3>
+          <p>
+            {recipe.visibility === 'private'
+              ? 'This recipe is private. People need a secure link to view it.'
+              : 'This recipe is public and can be shared with anyone.'}
+          </p>
+          <div className="share-actions">
+            <button type="button" onClick={handleCopyShareUrl}>
+              Copy Share URL
+            </button>
+            {isRecipeOwner ? (
+              <button
+                type="button"
+                onClick={handleRegenerateShareLink}
+                disabled={shareBusy}
+              >
+                {shareBusy ? 'Refreshing...' : 'Regenerate Private Link'}
+              </button>
+            ) : null}
+          </div>
+          {shareUrl ? <p className="share-url">{shareUrl}</p> : null}
+          {shareError ? <p className="share-message share-message--error">{shareError}</p> : null}
+          {shareStatus ? (
+            <p className="share-message share-message--success">{shareStatus}</p>
+          ) : null}
+        </div>
         <div className="time">
           <div className="time-item">
             <h2 id="prep-time">Prep</h2>
@@ -886,18 +1280,159 @@ function RecipeShowPage({ user }) {
             </ul>
           </div>
           <div className="preparation">
-            <h2>Preparation</h2>
-            <ol className="preparation-list">
-              {(recipe.preparation || []).map((step, index) => (
-                <li key={`${step}-${index}`} className="prep-step">
-                  <span className="prep-step-number">Step {index + 1}</span>
-                  <p>{step}</p>
-                </li>
-              ))}
-            </ol>
+            <div className="preparation-header">
+              <h2>Preparation</h2>
+              {preparationSteps.length ? (
+                <button
+                  type="button"
+                  className="cook-mode-btn"
+                  onClick={() => setCookModeEnabled((current) => !current)}
+                >
+                  {cookModeEnabled ? 'Exit Cook Mode' : 'Start Cook Mode'}
+                </button>
+              ) : null}
+            </div>
+            {cookModeEnabled && preparationSteps.length ? (
+              <div className="cook-mode-card">
+                <p className="cook-mode-progress">
+                  Step {cappedCookStepIndex + 1} of {preparationSteps.length}
+                </p>
+                <p className="cook-mode-step">{preparationSteps[cappedCookStepIndex]}</p>
+                <div className="cook-mode-actions">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCookStepIndex((current) => Math.max(current - 1, 0))
+                    }
+                    disabled={cappedCookStepIndex === 0}
+                  >
+                    Previous
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCookStepIndex((current) =>
+                        Math.min(current + 1, preparationSteps.length - 1)
+                      )
+                    }
+                    disabled={cappedCookStepIndex >= preparationSteps.length - 1}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <ol className="preparation-list">
+                {preparationSteps.map((step, index) => (
+                  <li key={`${step}-${index}`} className="prep-step">
+                    <span className="prep-step-number">Step {index + 1}</span>
+                    <p>{step}</p>
+                  </li>
+                ))}
+              </ol>
+            )}
           </div>
         </div>
       </section>
+
+      {user ? (
+        <section className="recipe-shell collection-shell">
+          <h2>Save This Recipe</h2>
+          <p>Add this recipe to favorites or one of your custom collections.</p>
+          <div className="collection-actions">
+            <button
+              type="button"
+              onClick={handleToggleFavorite}
+              disabled={libraryActionBusy || libraryLoading}
+            >
+              {isFavorited ? 'Remove Favorite' : 'Add Favorite'}
+            </button>
+            <select
+              value={collectionSelection}
+              onChange={(event) => setCollectionSelection(event.target.value)}
+              disabled={libraryLoading || libraryActionBusy}
+            >
+              <option value="">Select collection</option>
+              {(library?.collections || []).map((collection) => (
+                <option key={collection._id} value={collection._id}>
+                  {collection.name}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={handleAddToCollection}
+              disabled={!collectionSelection || libraryLoading || libraryActionBusy}
+            >
+              Add To Collection
+            </button>
+            <Link className="collection-link" to="/library">
+              Open Library
+            </Link>
+          </div>
+          {libraryError ? <p className="collection-error">{libraryError}</p> : null}
+        </section>
+      ) : null}
+
+      {isRecipeOwner ? (
+        <>
+          <section className="recipe-shell owner-shell">
+            <h2>Owner Notes</h2>
+            <p>Keep private notes on substitutions, outcomes, or reminders.</p>
+            <textarea
+              value={ownerNoteDraft}
+              onChange={(event) => setOwnerNoteDraft(event.target.value)}
+              placeholder="Private note for this recipe..."
+            />
+            <div className="owner-note-actions">
+              <button
+                type="button"
+                onClick={handleSaveOwnerNote}
+                disabled={ownerNoteSaving}
+              >
+                {ownerNoteSaving ? 'Saving...' : 'Save Note'}
+              </button>
+            </div>
+            {ownerNoteError ? (
+              <p className="owner-note-message owner-note-message--error">{ownerNoteError}</p>
+            ) : null}
+            {ownerNoteStatus ? (
+              <p className="owner-note-message owner-note-message--success">
+                {ownerNoteStatus}
+              </p>
+            ) : null}
+          </section>
+          <section className="recipe-shell owner-shell">
+            <h2>Version History</h2>
+            <p>Restore previous snapshots of this recipe when needed.</p>
+            {versionsLoading ? <p>Loading versions...</p> : null}
+            {versionsError ? <p className="version-error">{versionsError}</p> : null}
+            <ul className="version-list">
+              {(versions || []).map((version) => (
+                <li key={version._id} className="version-item">
+                  <div>
+                    <p className="version-date">{formatDateTime(version.createdAt)}</p>
+                    <p className="version-meta">
+                      {version.snapshot?.name || recipe.name} |{' '}
+                      {version.snapshot?.servings || recipe.servings || 'No servings'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRestoreVersion(version._id)}
+                    disabled={restoringVersionId === version._id}
+                  >
+                    {restoringVersionId === version._id ? 'Restoring...' : 'Restore'}
+                  </button>
+                </li>
+              ))}
+            </ul>
+            {!versionsLoading && !versions.length ? (
+              <p className="version-empty">No saved versions yet.</p>
+            ) : null}
+          </section>
+        </>
+      ) : null}
 
       {isRecipeOwner ? (
         <div className="change-btns">
@@ -916,7 +1451,8 @@ function RecipeShowPage({ user }) {
         <h2>Recommended Reviews</h2>
         {averageRating ? (
           <p className="average-rating">
-            Average Rating: {averageRating} / 5 ({buildStarText(Math.round(Number(averageRating)))})
+            Average Rating: {averageRating} / 5 (
+            {buildStarText(Math.round(Number(averageRating)))})
           </p>
         ) : (
           <p id="leave-review">No reviews yet. Be the first to leave a review!</p>
@@ -993,7 +1529,7 @@ function RecipeShowPage({ user }) {
                     <footer className="review-actions">
                       <Link to={`/recipes/${recipe._id}/reviews/${review._id}/edit`}>
                         <button className="edit-btn" type="button">
-                          📝 Edit
+                          Edit
                         </button>
                       </Link>
                       <button
@@ -1001,7 +1537,7 @@ function RecipeShowPage({ user }) {
                         type="button"
                         onClick={() => handleDeleteReview(review._id)}
                       >
-                        ️️🗑️ Delete
+                        Delete
                       </button>
                     </footer>
                   ) : null}

@@ -1,0 +1,510 @@
+import { useEffect, useMemo, useState } from 'react'
+import { Navigate } from 'react-router-dom'
+import { usePageStylesheets } from '../hooks/usePageStylesheets'
+import { api } from '../services/api'
+
+const MEAL_SLOTS = ['breakfast', 'lunch', 'dinner', 'snack']
+const APPLE_REMINDERS_SHORTCUT_NAME = 'Tasty Trove Grocery to Reminders'
+
+function getGroceryItemKey(aisle, item) {
+  return `${String(aisle)}::${String(item?.name || '')}::${String(item?.sample || '')}`
+}
+
+function toDateKey(date) {
+  return new Date(date).toISOString().slice(0, 10)
+}
+
+function getWeekStart(dateInput = new Date()) {
+  const date = new Date(dateInput)
+  const day = date.getUTCDay()
+  const offset = (day + 6) % 7
+  date.setUTCDate(date.getUTCDate() - offset)
+  return toDateKey(date)
+}
+
+function makeReadableDate(dateKey) {
+  const parsedDate = new Date(`${dateKey}T00:00:00Z`)
+  return parsedDate.toLocaleDateString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
+function titleize(value) {
+  return String(value || '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
+function PlannerPage({ user, sessionLoading }) {
+  usePageStylesheets(['/stylesheets/planner.css'])
+
+  const [weekStart, setWeekStart] = useState(getWeekStart())
+  const [mealPlan, setMealPlan] = useState({ entries: [] })
+  const [weekDateKeys, setWeekDateKeys] = useState([])
+  const [availableRecipes, setAvailableRecipes] = useState([])
+  const [groceryItems, setGroceryItems] = useState([])
+  const [groceryByAisle, setGroceryByAisle] = useState({})
+  const [loadingPlan, setLoadingPlan] = useState(true)
+  const [loadingGrocery, setLoadingGrocery] = useState(false)
+  const [plannerError, setPlannerError] = useState('')
+  const [exportMessage, setExportMessage] = useState('')
+  const [exportError, setExportError] = useState('')
+  const [removedGroceryItemKeys, setRemovedGroceryItemKeys] = useState([])
+
+  useEffect(() => {
+    if (!user) {
+      return
+    }
+
+    let cancelled = false
+
+    async function loadPageData() {
+      setLoadingPlan(true)
+      setPlannerError('')
+
+      try {
+        const [planData, recipeData] = await Promise.all([
+          api.getMealPlan(weekStart),
+          api.listRecipes(),
+        ])
+
+        if (!cancelled) {
+          setMealPlan(planData.mealPlan || { entries: [] })
+          setWeekDateKeys(planData.weekDateKeys || [])
+          setAvailableRecipes(recipeData.recipes || [])
+        }
+      } catch (err) {
+        console.log(err)
+        if (!cancelled) {
+          setPlannerError(err.message || 'Unable to load planner')
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingPlan(false)
+        }
+      }
+    }
+
+    loadPageData()
+
+    return () => {
+      cancelled = true
+    }
+  }, [weekStart, user?._id])
+
+  const entriesMap = useMemo(() => {
+    const map = new Map()
+    ;(mealPlan.entries || []).forEach((entry) => {
+      map.set(`${entry.dateKey}:${entry.slot}`, entry)
+    })
+    return map
+  }, [mealPlan.entries])
+
+  const removedGroceryItemSet = useMemo(
+    () => new Set(removedGroceryItemKeys),
+    [removedGroceryItemKeys]
+  )
+
+  const filteredGroceryByAisle = useMemo(() => {
+    const filtered = {}
+
+    Object.entries(groceryByAisle).forEach(([aisle, items]) => {
+      const nextItems = (items || []).filter(
+        (item) => !removedGroceryItemSet.has(getGroceryItemKey(aisle, item))
+      )
+
+      if (nextItems.length) {
+        filtered[aisle] = nextItems
+      }
+    })
+
+    return filtered
+  }, [groceryByAisle, removedGroceryItemSet])
+
+  const filteredGroceryItems = useMemo(
+    () => Object.values(filteredGroceryByAisle).flat(),
+    [filteredGroceryByAisle]
+  )
+
+  const removedCount = Math.max(groceryItems.length - filteredGroceryItems.length, 0)
+
+  const appleRemindersPayload = useMemo(() => {
+    const lines = []
+    Object.entries(filteredGroceryByAisle).forEach(([aisle, items]) => {
+      items.forEach((item) => {
+        const countSuffix = item.count > 1 ? ` (x${item.count})` : ''
+        lines.push(`[${aisle}] ${item.name}${countSuffix}`)
+      })
+    })
+    return lines.join('\n')
+  }, [filteredGroceryByAisle])
+
+  if (sessionLoading && !user) {
+    return (
+      <main className="planner-page">
+        <h1>Loading planner...</h1>
+      </main>
+    )
+  }
+
+  if (!sessionLoading && !user) {
+    return <Navigate to="/" replace />
+  }
+
+  async function assignRecipe(dateKey, slot, recipeId) {
+    if (!recipeId) {
+      await removeRecipe(dateKey, slot)
+      return
+    }
+
+    try {
+      const data = await api.upsertMealPlanEntry({
+        weekStart,
+        dateKey,
+        slot,
+        recipeId,
+      })
+      setMealPlan(data.mealPlan || { entries: [] })
+    } catch (err) {
+      console.log(err)
+      setPlannerError(err.message || 'Unable to assign recipe')
+    }
+  }
+
+  async function removeRecipe(dateKey, slot) {
+    try {
+      const data = await api.removeMealPlanEntry({
+        weekStart,
+        dateKey,
+        slot,
+      })
+      setMealPlan(data?.mealPlan || { entries: [] })
+    } catch (err) {
+      console.log(err)
+      setPlannerError(err.message || 'Unable to remove recipe')
+    }
+  }
+
+  async function generateGroceryList() {
+    setLoadingGrocery(true)
+    setPlannerError('')
+    setExportError('')
+    setExportMessage('')
+    setRemovedGroceryItemKeys([])
+
+    try {
+      const data = await api.getPlannerGrocery(weekStart)
+      setGroceryItems(data.items || [])
+      setGroceryByAisle(data.groupedItems || {})
+    } catch (err) {
+      console.log(err)
+      setPlannerError(err.message || 'Unable to generate grocery list')
+    } finally {
+      setLoadingGrocery(false)
+    }
+  }
+
+  function handleRecipeDragStart(event, recipeId) {
+    event.dataTransfer.setData('text/plain', recipeId)
+  }
+
+  async function handleSlotDrop(event, dateKey, slot) {
+    event.preventDefault()
+    const recipeId = event.dataTransfer.getData('text/plain')
+    if (!recipeId) {
+      return
+    }
+
+    await assignRecipe(dateKey, slot, recipeId)
+  }
+
+  function goToPrevWeek() {
+    const current = new Date(`${weekStart}T00:00:00Z`)
+    current.setUTCDate(current.getUTCDate() - 7)
+    setWeekStart(toDateKey(current))
+  }
+
+  function goToNextWeek() {
+    const current = new Date(`${weekStart}T00:00:00Z`)
+    current.setUTCDate(current.getUTCDate() + 7)
+    setWeekStart(toDateKey(current))
+  }
+
+  async function handleCopyApplePayload() {
+    setExportMessage('')
+    setExportError('')
+
+    if (!appleRemindersPayload.trim()) {
+      setExportError('Generate a grocery list first.')
+      return
+    }
+
+    if (!navigator?.clipboard?.writeText) {
+      setExportError('Clipboard is not available in this browser.')
+      return
+    }
+
+    try {
+      await navigator.clipboard.writeText(appleRemindersPayload)
+      setExportMessage('Copied grocery list text for Apple Reminders.')
+    } catch (err) {
+      console.log(err)
+      setExportError('Unable to copy grocery list.')
+    }
+  }
+
+  function handleSendToAppleReminders() {
+    setExportMessage('')
+    setExportError('')
+
+    if (!appleRemindersPayload.trim()) {
+      setExportError('Generate a grocery list first.')
+      return
+    }
+
+    if (typeof window === 'undefined') {
+      setExportError('This action is only available in the browser.')
+      return
+    }
+
+    const shortcutUrl =
+      `shortcuts://run-shortcut?name=` +
+      `${encodeURIComponent(APPLE_REMINDERS_SHORTCUT_NAME)}` +
+      `&input=text&text=${encodeURIComponent(appleRemindersPayload)}`
+
+    window.location.href = shortcutUrl
+    setExportMessage('Opening Apple Shortcuts...')
+  }
+
+  function handleRemoveGroceryItem(aisle, item) {
+    const key = getGroceryItemKey(aisle, item)
+    setRemovedGroceryItemKeys((current) =>
+      current.includes(key) ? current : [...current, key]
+    )
+    setExportError('')
+    setExportMessage('')
+  }
+
+  function handleResetRemovedItems() {
+    setRemovedGroceryItemKeys([])
+    setExportError('')
+    setExportMessage('')
+  }
+
+  return (
+    <main className="planner-page">
+      <section className="planner-shell">
+        <h1>Meal Planner</h1>
+        <p>
+          Plan meals by dragging recipes into each slot, then auto-generate your
+          grocery list.
+        </p>
+        <div className="planner-controls">
+          <button type="button" onClick={goToPrevWeek}>
+            Previous Week
+          </button>
+          <label htmlFor="week-start-input">Week Start</label>
+          <input
+            id="week-start-input"
+            type="date"
+            value={weekStart}
+            onChange={(event) => setWeekStart(event.target.value)}
+          />
+          <button type="button" onClick={goToNextWeek}>
+            Next Week
+          </button>
+        </div>
+        {plannerError ? <p className="planner-error">{plannerError}</p> : null}
+      </section>
+
+      <section className="planner-shell">
+        <h2>Recipe Bank</h2>
+        <p>Drag any recipe onto a day/slot below.</p>
+        <div className="recipe-bank">
+          {availableRecipes.map((recipe) => (
+            <article
+              key={recipe._id}
+              className="recipe-bank-item"
+              draggable
+              onDragStart={(event) => handleRecipeDragStart(event, recipe._id)}
+            >
+              <img
+                src={recipe.imageUrl || '/assets/images/logo-images/logo.png'}
+                alt={recipe.name}
+              />
+              <h3>{recipe.name}</h3>
+              <p>
+                {titleize(recipe.mealCategory || 'other')} |{' '}
+                {titleize(recipe.cuisineType || 'other')}
+              </p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="planner-shell">
+        <h2>Weekly Calendar</h2>
+        {loadingPlan ? <p>Loading plan...</p> : null}
+        <div className="planner-grid">
+          {weekDateKeys.map((dateKey) => (
+            <article key={dateKey} className="planner-day-card">
+              <h3>{makeReadableDate(dateKey)}</h3>
+              {MEAL_SLOTS.map((slot) => {
+                const mapKey = `${dateKey}:${slot}`
+                const entry = entriesMap.get(mapKey)
+
+                return (
+                  <div
+                    key={mapKey}
+                    className="planner-slot"
+                    onDragOver={(event) => event.preventDefault()}
+                    onDrop={(event) => handleSlotDrop(event, dateKey, slot)}
+                  >
+                    <label>{titleize(slot)}</label>
+                    <select
+                      value={entry?.recipe?._id || ''}
+                      onChange={(event) =>
+                        assignRecipe(dateKey, slot, event.target.value)
+                      }
+                    >
+                      <option value="">-- Unassigned --</option>
+                      {availableRecipes.map((recipe) => (
+                        <option key={recipe._id} value={recipe._id}>
+                          {recipe.name}
+                        </option>
+                      ))}
+                    </select>
+                    {entry?.recipe ? (
+                      <div className="slot-preview">
+                        <span>{entry.recipe.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeRecipe(dateKey, slot)}
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="drop-hint">Drop recipe here</p>
+                    )}
+                  </div>
+                )
+              })}
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="planner-shell">
+        <div className="grocery-header">
+          <h2>Auto Grocery List</h2>
+          <div className="grocery-header-actions">
+            <button
+              type="button"
+              onClick={generateGroceryList}
+              disabled={loadingGrocery}
+            >
+              {loadingGrocery ? 'Generating...' : 'Generate Grocery List'}
+            </button>
+            <button
+              type="button"
+              className="grocery-export-btn"
+              onClick={handleSendToAppleReminders}
+              disabled={!filteredGroceryItems.length}
+            >
+              Export To Apple Reminders
+            </button>
+            <button
+              type="button"
+              className="grocery-export-btn grocery-export-btn--secondary"
+              onClick={handleCopyApplePayload}
+              disabled={!filteredGroceryItems.length}
+            >
+              Copy For Reminders
+            </button>
+            {removedCount ? (
+              <button
+                type="button"
+                className="grocery-export-btn grocery-export-btn--secondary"
+                onClick={handleResetRemovedItems}
+              >
+                Restore Removed ({removedCount})
+              </button>
+            ) : null}
+          </div>
+        </div>
+        <p className="grocery-export-hint">
+          Use with an Apple Shortcut named "{APPLE_REMINDERS_SHORTCUT_NAME}" that
+          splits input by newline and creates reminders in your Grocery list. You
+          can remove items below before exporting.
+        </p>
+        {exportError ? <p className="planner-error">{exportError}</p> : null}
+        {exportMessage ? <p className="planner-success">{exportMessage}</p> : null}
+        {filteredGroceryItems.length ? (
+          <p className="grocery-summary">
+            {filteredGroceryItems.length} item
+            {filteredGroceryItems.length === 1 ? '' : 's'} across{' '}
+            {Object.keys(filteredGroceryByAisle).length} aisle
+            {Object.keys(filteredGroceryByAisle).length === 1 ? '' : 's'}
+            {removedCount ? ` (${removedCount} removed)` : ''}
+          </p>
+        ) : null}
+        {!filteredGroceryItems.length ? (
+          <p className="grocery-empty">
+            {groceryItems.length
+              ? 'All current grocery items are removed. Restore removed items or generate again.'
+              : 'No grocery items yet. Generate from your current week plan.'}
+          </p>
+        ) : null}
+        <div className="grocery-aisles-grid">
+          {Object.entries(filteredGroceryByAisle).map(([aisle, items]) => (
+            <article key={aisle} className="grocery-aisle">
+              <header className="grocery-aisle-header">
+                <h3>{aisle}</h3>
+                <span>
+                  {items.length} item{items.length === 1 ? '' : 's'}
+                </span>
+              </header>
+              <ul className="grocery-item-list">
+                {items.map((item) => (
+                  <li key={`${aisle}-${item.name}`} className="grocery-item-row">
+                    <div className="grocery-item-content">
+                      <strong className="grocery-item-name">{item.name}</strong>
+                      {item.sample ? (
+                        <p className="grocery-item-sample">{item.sample}</p>
+                      ) : null}
+                      {item.recipes?.length ? (
+                        <p className="grocery-item-meta">
+                          Used in {item.recipes.length} recipe
+                          {item.recipes.length === 1 ? '' : 's'}
+                        </p>
+                      ) : null}
+                    </div>
+                    <div className="grocery-item-actions">
+                      {item.count > 1 ? (
+                        <span className="grocery-item-count">x{item.count}</span>
+                      ) : null}
+                      <button
+                        type="button"
+                        className="grocery-item-remove"
+                        onClick={() => handleRemoveGroceryItem(aisle, item)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </article>
+          ))}
+        </div>
+      </section>
+    </main>
+  )
+}
+
+export { PlannerPage }

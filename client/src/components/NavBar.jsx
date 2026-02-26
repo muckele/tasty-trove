@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { usePageStylesheets } from '../hooks/usePageStylesheets'
 import { api } from '../services/api'
 
@@ -70,17 +70,46 @@ function NavBar({ user, googleClientID, onSessionChange }) {
           </button>
         </div>
         <div className={`nav-links ${showLinks ? 'show-links' : ''}`}>
-          <Link to="/" className="nav-link">
+          <NavLink
+            to="/"
+            className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+          >
             Home
-          </Link>
+          </NavLink>
           {user ? (
-            <Link to="/recipes/new" className="nav-link">
-              Create A Recipe
-            </Link>
+            <>
+              <NavLink
+                to="/recipes/new"
+                className={({ isActive }) =>
+                  isActive ? 'nav-link active' : 'nav-link'
+                }
+              >
+                Create A Recipe
+              </NavLink>
+              <NavLink
+                to="/planner"
+                className={({ isActive }) =>
+                  isActive ? 'nav-link active' : 'nav-link'
+                }
+              >
+                Meal Planner
+              </NavLink>
+              <NavLink
+                to="/library"
+                className={({ isActive }) =>
+                  isActive ? 'nav-link active' : 'nav-link'
+                }
+              >
+                Library
+              </NavLink>
+            </>
           ) : null}
-          <Link to="/recipes" className="nav-link">
+          <NavLink
+            to="/recipes"
+            className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+          >
             All Recipes
-          </Link>
+          </NavLink>
         </div>
         <form onSubmit={handleSearchSubmit} className="search-form">
           <input

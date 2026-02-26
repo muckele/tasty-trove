@@ -35,7 +35,12 @@ router.get('/health', (req, res) => {
 
 router.get('/home', async (req, res) => {
   try {
-    const recipes = await Recipe.find({})
+    const ownerId = String(req.user?.profile?._id || req.user?.profile || '')
+    const visibilityFilter = ownerId
+      ? { $or: [{ visibility: 'public' }, { owner: ownerId }] }
+      : { visibility: 'public' }
+
+    const recipes = await Recipe.find(visibilityFilter)
     const dayKey = new Date().toISOString().slice(0, 10)
     const featuredRecipe = getFeaturedRecipeForDay(recipes, dayKey)
     const remainingRecipes = featuredRecipe

@@ -8,6 +8,8 @@ import { RecipeShowPage } from './pages/RecipeShowPage'
 import { RecipeFormPage } from './pages/RecipeFormPage'
 import { EditReviewPage } from './pages/EditReviewPage'
 import { NotFoundPage } from './pages/NotFoundPage'
+import { PlannerPage } from './pages/PlannerPage'
+import { LibraryPage } from './pages/LibraryPage'
 
 function App() {
   const [user, setUser] = useState(null)
@@ -45,6 +47,14 @@ function App() {
         <Route path="/" element={<HomePage user={user} />} />
         <Route path="/recipes" element={<RecipesPage />} />
         <Route
+          path="/planner"
+          element={<PlannerPage user={user} sessionLoading={sessionLoading} />}
+        />
+        <Route
+          path="/library"
+          element={<LibraryPage user={user} sessionLoading={sessionLoading} />}
+        />
+        <Route
           path="/recipes/new"
           element={
             <RecipeFormPage
@@ -69,6 +79,7 @@ function App() {
           element={<EditReviewPage user={user} sessionLoading={sessionLoading} />}
         />
         <Route path="/recipes/:recipeId" element={<RecipeShowPage user={user} />} />
+        <Route path="/shared/:shareToken" element={<RecipeShowPage user={user} />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </>

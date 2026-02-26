@@ -36,6 +36,26 @@ const CUISINE_TYPE_OPTIONS = [
   { value: 'other', label: 'Other' },
 ]
 
+const DIETARY_TAG_OPTIONS = [
+  { value: 'vegetarian', label: 'Vegetarian' },
+  { value: 'vegan', label: 'Vegan' },
+  { value: 'gluten-free', label: 'Gluten-Free' },
+  { value: 'dairy-free', label: 'Dairy-Free' },
+  { value: 'nut-free', label: 'Nut-Free' },
+]
+
+const ALLERGEN_TAG_OPTIONS = [
+  { value: 'dairy', label: 'Contains Dairy' },
+  { value: 'eggs', label: 'Contains Eggs' },
+  { value: 'peanuts', label: 'Contains Peanuts' },
+  { value: 'tree nuts', label: 'Contains Tree Nuts' },
+  { value: 'soy', label: 'Contains Soy' },
+  { value: 'wheat', label: 'Contains Wheat' },
+  { value: 'fish', label: 'Contains Fish' },
+  { value: 'shellfish', label: 'Contains Shellfish' },
+  { value: 'sesame', label: 'Contains Sesame' },
+]
+
 function titleize(value) {
   return String(value || '')
     .split(/\s+/)
@@ -60,10 +80,13 @@ function RecipesPage() {
   const query = searchParams.get('query') || ''
   const mealCategory = searchParams.get('mealCategory') || ''
   const cuisineType = searchParams.get('cuisineType') || ''
+  const dietaryTag = searchParams.get('dietaryTag') || ''
+  const allergenTag = searchParams.get('allergenTag') || ''
 
   const hasActiveFilters = useMemo(
-    () => Boolean(query || mealCategory || cuisineType),
-    [query, mealCategory, cuisineType]
+    () =>
+      Boolean(query || mealCategory || cuisineType || dietaryTag || allergenTag),
+    [query, mealCategory, cuisineType, dietaryTag, allergenTag]
   )
 
   useEffect(() => {
@@ -75,6 +98,8 @@ function RecipesPage() {
           query,
           mealCategory,
           cuisineType,
+          dietaryTag,
+          allergenTag,
         })
         if (!cancelled) {
           setRecipes(data.recipes || [])
@@ -89,7 +114,7 @@ function RecipesPage() {
     return () => {
       cancelled = true
     }
-  }, [query, mealCategory, cuisineType])
+  }, [query, mealCategory, cuisineType, dietaryTag, allergenTag])
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -119,6 +144,8 @@ function RecipesPage() {
     params.delete('query')
     params.delete('mealCategory')
     params.delete('cuisineType')
+    params.delete('dietaryTag')
+    params.delete('allergenTag')
     setSearchParams(params)
   }
 
@@ -162,6 +189,40 @@ function RecipesPage() {
             >
               <option value="">All Cuisines</option>
               {CUISINE_TYPE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="recipe-filter-control">
+            <label htmlFor="dietary-tag-filter">Dietary</label>
+            <select
+              id="dietary-tag-filter"
+              value={dietaryTag}
+              onChange={(event) =>
+                updateFilters({ dietaryTag: event.target.value })
+              }
+            >
+              <option value="">All Dietary Tags</option>
+              {DIETARY_TAG_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="recipe-filter-control">
+            <label htmlFor="allergen-tag-filter">Allergen</label>
+            <select
+              id="allergen-tag-filter"
+              value={allergenTag}
+              onChange={(event) =>
+                updateFilters({ allergenTag: event.target.value })
+              }
+            >
+              <option value="">Any Allergen Profile</option>
+              {ALLERGEN_TAG_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>

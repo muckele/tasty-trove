@@ -163,6 +163,45 @@ body {
   box-shadow: 0 0 0 3px rgba(100, 132, 131, 0.18);
 }
 
+.tag-fieldset {
+  margin: 14px 0 0;
+  padding: 10px 12px 12px;
+  border: 1px solid #d8c9b0;
+  border-radius: 12px;
+  background: #fffdf8;
+}
+
+.tag-fieldset legend {
+  color: #355260;
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 0 4px;
+}
+
+.tag-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px 12px;
+}
+
+.tag-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  color: #334754;
+  font-size: 0.9rem;
+  letter-spacing: normal;
+  text-transform: none;
+  font-weight: 600;
+}
+
+.tag-checkbox input {
+  width: auto;
+}
+
 #dynamic-form {
   margin-top: 10px;
 }
@@ -179,7 +218,8 @@ body {
 
 #add-step-button,
 #create-recipe-button,
-#save-changes-button {
+#save-changes-button,
+.duplicate-save-btn {
   border: none;
   border-radius: 999px;
   padding: 11px 18px;
@@ -196,7 +236,8 @@ body {
 }
 
 #create-recipe-button,
-#save-changes-button {
+#save-changes-button,
+.duplicate-save-btn {
   background: var(--accent);
   color: #1f2f3f;
 }
@@ -212,9 +253,46 @@ body {
 }
 
 #create-recipe-button:hover,
-#save-changes-button:hover {
+#save-changes-button:hover,
+.duplicate-save-btn:hover {
   background: var(--accent-deep);
   color: #fdf9f2;
+}
+
+#create-recipe-button:disabled,
+#save-changes-button:disabled,
+.duplicate-save-btn:disabled {
+  opacity: 0.64;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.form-error {
+  margin: 10px 0 0;
+  color: #8f2222;
+  font-weight: 700;
+}
+
+.duplicate-actions {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.duplicate-actions a {
+  color: #2d5762;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.duplicate-actions a:hover {
+  text-decoration: underline;
+}
+
+.duplicate-actions--import {
+  margin-top: 12px;
 }
 
 @keyframes editorFadeUp {
@@ -252,9 +330,16 @@ body {
   #import-recipe-button,
   #add-step-button,
   #create-recipe-button,
-  #save-changes-button {
+  #save-changes-button,
+  .duplicate-save-btn {
     width: 100%;
     margin-right: 0;
     margin-bottom: 8px;
+  }
+
+  .duplicate-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
   }
 }

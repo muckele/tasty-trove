@@ -16,10 +16,24 @@ router.post('/import', isLoggedIn, recipesCtrl.importRecipe)
 router.post('/parse-text', recipesCtrl.parseRecipeText)
 // POST /api/recipes/import-text
 router.post('/import-text', isLoggedIn, recipesCtrl.importRecipeFromText)
+// GET /api/recipes/shared/:shareToken
+router.get('/shared/:shareToken', recipesCtrl.sharedByToken)
 // GET /api/recipes/:recipeId
 router.get('/:recipeId', recipesCtrl.show)
 // PUT /api/recipes/:recipeId
 router.put('/:recipeId', isLoggedIn, recipesCtrl.update)
+// POST /api/recipes/:recipeId/share-token
+router.post('/:recipeId/share-token', isLoggedIn, recipesCtrl.regenerateShareToken)
+// PUT /api/recipes/:recipeId/owner-note
+router.put('/:recipeId/owner-note', isLoggedIn, recipesCtrl.updateOwnerNote)
+// GET /api/recipes/:recipeId/versions
+router.get('/:recipeId/versions', isLoggedIn, recipesCtrl.listVersions)
+// POST /api/recipes/:recipeId/versions/:versionId/restore
+router.post(
+  '/:recipeId/versions/:versionId/restore',
+  isLoggedIn,
+  recipesCtrl.restoreVersion
+)
 // DELETE /api/recipes/:recipeId
 router.delete('/:recipeId', isLoggedIn, recipesCtrl.delete)
 // POST /api/recipes/:recipeId/reviews

@@ -1,0 +1,185 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
+  background:
+    radial-gradient(circle at 12% 10%, #efe1cd 0%, rgba(239, 225, 205, 0.08) 44%),
+    radial-gradient(circle at 88% 18%, #dbe8e6 0%, rgba(219, 232, 230, 0.08) 42%),
+    #f7f3ec;
+  color: #203344;
+}
+
+.library-page {
+  max-width: 1150px;
+  margin: 26px auto 70px;
+  padding: 0 18px;
+}
+
+.library-shell {
+  background: linear-gradient(145deg, #fcf8f1 0%, #f6efdf 100%);
+  border: 1px solid #e7dbc8;
+  border-radius: 16px;
+  box-shadow: 0 14px 34px rgba(24, 41, 58, 0.1);
+  padding: 20px;
+  margin-bottom: 14px;
+}
+
+.library-shell h1,
+.library-shell h2 {
+  margin: 0 0 8px;
+  color: #203344;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+}
+
+.library-shell p {
+  margin: 0 0 12px;
+  color: #4f5f69;
+}
+
+.library-error {
+  color: #8f2222;
+  font-weight: 700;
+}
+
+.library-actions,
+.create-collection-form,
+.collection-actions,
+.collection-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.library-page input,
+.library-page select,
+.library-page button {
+  border: 1px solid #c8baa0;
+  border-radius: 10px;
+  padding: 9px 11px;
+  background: #fff;
+  color: #203344;
+  font-size: 0.92rem;
+}
+
+.library-page button {
+  border: none;
+  background: #2f6466;
+  color: #f2f7f3;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.library-page button:hover {
+  background: #254f58;
+}
+
+.library-page button.danger {
+  background: #f4d6d1;
+  color: #6b1b1b;
+}
+
+.library-page button.danger:hover {
+  background: #edc4bd;
+}
+
+.favorite-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.library-recipe-card {
+  border: 1px solid #deceb5;
+  border-radius: 12px;
+  background: #fffefb;
+  padding: 10px;
+}
+
+.library-recipe-card img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.library-recipe-card h3 {
+  margin: 8px 0 6px;
+  font-size: 1.03rem;
+}
+
+.library-recipe-card h3 a {
+  color: #203344;
+  text-decoration: none;
+}
+
+.library-recipe-card h3 a:hover {
+  text-decoration: underline;
+}
+
+.library-recipe-card p {
+  margin: 0 0 8px;
+  font-size: 0.84rem;
+}
+
+.favorited-label {
+  color: #ba7c2f;
+  font-weight: 700;
+}
+
+.collection-list {
+  display: grid;
+  gap: 10px;
+}
+
+.collection-card {
+  border: 1px solid #deceb5;
+  border-radius: 12px;
+  background: #fffefb;
+  padding: 10px;
+}
+
+.collection-recipes {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.collection-recipes li {
+  margin-bottom: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.collection-recipes a {
+  color: #203344;
+}
+
+.empty-state {
+  color: #70808a;
+}
+
+@media (max-width: 760px) {
+  .library-page {
+    margin-top: 14px;
+    padding: 0 10px;
+  }
+
+  .library-shell {
+    padding: 14px;
+  }
+
+  .library-actions,
+  .create-collection-form,
+  .collection-actions,
+  .collection-header {
+    flex-direction: column;
+  }
+
+  .library-page input,
+  .library-page select,
+  .library-page button {
+    width: 100%;
+  }
+}

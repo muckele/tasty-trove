@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { usePageStylesheets } from '../hooks/usePageStylesheets'
 import { api } from '../services/api'
 
@@ -13,6 +13,9 @@ const initialForm = {
   prepTime: '',
   cookTime: '',
   ingredients: '',
+  visibility: 'public',
+  dietaryTags: [],
+  allergenTags: [],
 }
 
 const MEAL_CATEGORY_OPTIONS = [
@@ -48,6 +51,26 @@ const CUISINE_TYPE_OPTIONS = [
   { value: 'other', label: 'Other' },
 ]
 
+const DIETARY_TAG_OPTIONS = [
+  { value: 'vegetarian', label: 'Vegetarian' },
+  { value: 'vegan', label: 'Vegan' },
+  { value: 'gluten-free', label: 'Gluten-Free' },
+  { value: 'dairy-free', label: 'Dairy-Free' },
+  { value: 'nut-free', label: 'Nut-Free' },
+]
+
+const ALLERGEN_TAG_OPTIONS = [
+  { value: 'dairy', label: 'Dairy' },
+  { value: 'eggs', label: 'Eggs' },
+  { value: 'peanuts', label: 'Peanuts' },
+  { value: 'tree nuts', label: 'Tree Nuts' },
+  { value: 'soy', label: 'Soy' },
+  { value: 'wheat', label: 'Wheat' },
+  { value: 'fish', label: 'Fish' },
+  { value: 'shellfish', label: 'Shellfish' },
+  { value: 'sesame', label: 'Sesame' },
+]
+
 function RecipeFormPage({ mode, user, sessionLoading }) {
   const { recipeId } = useParams()
   const navigate = useNavigate()
@@ -67,6 +90,10 @@ function RecipeFormPage({ mode, user, sessionLoading }) {
   const [importingText, setImportingText] = useState(false)
   const [importTextError, setImportTextError] = useState('')
   const [importTextPreviewReady, setImportTextPreviewReady] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [formError, setFormError] = useState('')
+  const [duplicateRecipeId, setDuplicateRecipeId] = useState('')
+  const [importDuplicateRecipeId, setImportDuplicateRecipeId] = useState('')
 
   useEffect(() => {
     let cancelled = false
@@ -89,6 +116,13 @@ function RecipeFormPage({ mode, user, sessionLoading }) {
             prepTime: data.recipe.prepTime ?? '',
             cookTime: data.recipe.cookTime ?? '',
             ingredients: (data.recipe.ingredients || []).join(', '),
+            visibility: data.recipe.visibility || 'public',
+            dietaryTags: Array.isArray(data.recipe.dietaryTags)
+              ? data.recipe.dietaryTags
+              : [],
+            allergenTags: Array.isArray(data.recipe.allergenTags)
+              ? data.recipe.allergenTags
+              : [],
           })
           setPreparationSteps(
             data.recipe.preparation?.length ? data.recipe.preparation : ['']
@@ -142,6 +176,21 @@ function RecipeFormPage({ mode, user, sessionLoading }) {
     }))
   }
 
+  function toggleTagField(field, value) {
+    setForm((current) => {
+      const currentValues = Array.isArray(current[field]) ? current[field] : []
+      const exists = currentValues.includes(value)
+      const nextValues = exists
+        ? currentValues.filter((entry) => entry !== value)
+        : [...currentValues, value]
+
+      return {
+        ...current,
+        [field]: nextValues,
+      }
+    })
+  }
+
   function handlePreparationChange(index, value) {
     setPreparationSteps((current) =>
       current.map((step, stepIndex) => (stepIndex === index ? value : step))
@@ -152,9 +201,10 @@ function RecipeFormPage({ mode, user, sessionLoading }) {
     setPreparationSteps((current) => [...current, ''])
   }
 
-  async function handleSubmit(event) {
-    event.preventDefault()
-
+  async function submitRecipe({ allowDuplicate = false } = {}) {
+    setFormError('')
+    setDuplicateRecipeId('')
+    setSubmitting(true)
     const payload = {
       name: form.name,
       imageUrl: form.imageUrl,
@@ -166,6 +216,10 @@ function RecipeFormPage({ mode, user, sessionLoading }) {
       cookTime: Number(form.cookTime) || 0,
       ingredients: form.ingredients,
       preparation: cleanedPreparation,
+      visibility: form.visibility,
+      dietaryTags: form.dietaryTags,
+      allergenTags: form.allergenTags,
+      ...(allowDuplicate ? { allowDuplicate: true } : {}),
     }
 
     try {
@@ -176,29 +230,64 @@ function RecipeFormPage({ mode, user, sessionLoading }) {
       navigate(`/recipes/${data.recipe._id}`)
     } catch (err) {
       console.log(err)
+      if (err.status === 409 && err.data?.duplicateRecipeId) {
+        setFormError(err.message || 'Duplicate recipe detected.')
+        setDuplicateRecipeId(String(err.data.duplicateRecipeId))
+      } else {
+        setFormError(err.message || 'Unable to save recipe.')
+      }
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault()
+    await submitRecipe()
+  }
+
+  async function importRecipeFromUrl({ allowDuplicate = false } = {}) {
+    setImportError('')
+    setImportDuplicateRecipeId('')
+    setImporting(true)
+
+    try {
+      const data = await api.importRecipe(importUrl.trim(), {
+        ...(allowDuplicate ? { allowDuplicate: true } : {}),
+      })
+      navigate(`/recipes/${data.recipe._id}`)
+    } catch (err) {
+      console.log(err)
+      if (err.status === 409 && err.data?.duplicateRecipeId) {
+        setImportError(err.message || 'Duplicate recipe detected.')
+        setImportDuplicateRecipeId(String(err.data.duplicateRecipeId))
+      } else {
+        setImportError(err.message || 'Unable to import recipe from URL.')
+      }
+    } finally {
+      setImporting(false)
     }
   }
 
   async function handleImportRecipe(event) {
     event.preventDefault()
     setImportError('')
+    setImportDuplicateRecipeId('')
 
     if (!importUrl.trim()) {
       setImportError('Please paste a recipe URL first.')
       return
     }
 
-    setImporting(true)
+    await importRecipeFromUrl()
+  }
 
-    try {
-      const data = await api.importRecipe(importUrl.trim())
-      navigate(`/recipes/${data.recipe._id}`)
-    } catch (err) {
-      console.log(err)
-      setImportError(err.message || 'Unable to import recipe from URL.')
-    } finally {
-      setImporting(false)
+  async function handleImportRecipeAllowDuplicate() {
+    if (!importUrl.trim()) {
+      return
     }
+
+    await importRecipeFromUrl({ allowDuplicate: true })
   }
 
   async function handleImportRecipeText(event) {
@@ -224,6 +313,13 @@ function RecipeFormPage({ mode, user, sessionLoading }) {
         servings: parsedRecipe.servings || '',
         mealCategory: parsedRecipe.mealCategory || '',
         cuisineType: parsedRecipe.cuisineType || '',
+        visibility: parsedRecipe.visibility || 'public',
+        dietaryTags: Array.isArray(parsedRecipe.dietaryTags)
+          ? parsedRecipe.dietaryTags
+          : [],
+        allergenTags: Array.isArray(parsedRecipe.allergenTags)
+          ? parsedRecipe.allergenTags
+          : [],
         totalTime: parsedRecipe.totalTime ?? '',
         prepTime: parsedRecipe.prepTime ?? '',
         cookTime: parsedRecipe.cookTime ?? '',
@@ -313,6 +409,49 @@ function RecipeFormPage({ mode, user, sessionLoading }) {
         ))}
       </select>
 
+      <label htmlFor="visibility-input">Visibility:</label>
+      <select
+        name="visibility"
+        id="visibility-input"
+        value={form.visibility}
+        onChange={(event) => setField('visibility', event.target.value)}
+      >
+        <option value="public">Public</option>
+        <option value="private">Private</option>
+      </select>
+
+      <fieldset className="tag-fieldset">
+        <legend>Dietary Tags</legend>
+        <div className="tag-grid">
+          {DIETARY_TAG_OPTIONS.map((option) => (
+            <label key={option.value} className="tag-checkbox">
+              <input
+                type="checkbox"
+                checked={form.dietaryTags.includes(option.value)}
+                onChange={() => toggleTagField('dietaryTags', option.value)}
+              />
+              <span>{option.label}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset className="tag-fieldset">
+        <legend>Allergen Tags</legend>
+        <div className="tag-grid">
+          {ALLERGEN_TAG_OPTIONS.map((option) => (
+            <label key={option.value} className="tag-checkbox">
+              <input
+                type="checkbox"
+                checked={form.allergenTags.includes(option.value)}
+                onChange={() => toggleTagField('allergenTags', option.value)}
+              />
+              <span>{option.label}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
       <label htmlFor="total-time-input">Total Time:</label>
       <input
         type="number"
@@ -374,9 +513,24 @@ function RecipeFormPage({ mode, user, sessionLoading }) {
         <button
           type="submit"
           id={isEditMode ? 'save-changes-button' : 'create-recipe-button'}
+          disabled={submitting}
         >
-          {isEditMode ? 'Save Changes' : 'Create Recipe'}
+          {submitting ? 'Saving...' : isEditMode ? 'Save Changes' : 'Create Recipe'}
         </button>
+        {formError ? <p className="form-error">{formError}</p> : null}
+        {duplicateRecipeId ? (
+          <div className="duplicate-actions">
+            <Link to={`/recipes/${duplicateRecipeId}`}>Open Existing Recipe</Link>
+            <button
+              type="button"
+              className="duplicate-save-btn"
+              onClick={() => submitRecipe({ allowDuplicate: true })}
+              disabled={submitting}
+            >
+              Save Anyway
+            </button>
+          </div>
+        ) : null}
       </div>
     </form>
   )
@@ -402,6 +556,19 @@ function RecipeFormPage({ mode, user, sessionLoading }) {
             </button>
           </form>
           {importError ? <p className="import-error">{importError}</p> : null}
+          {importDuplicateRecipeId ? (
+            <div className="duplicate-actions duplicate-actions--import">
+              <Link to={`/recipes/${importDuplicateRecipeId}`}>Open Existing Recipe</Link>
+              <button
+                type="button"
+                id="import-recipe-button"
+                onClick={handleImportRecipeAllowDuplicate}
+                disabled={importing}
+              >
+                {importing ? 'Importing...' : 'Import Anyway'}
+              </button>
+            </div>
+          ) : null}
         </section>
       ) : null}
       {!isEditMode ? (
