@@ -158,6 +158,11 @@ function titleize(value) {
     .join(' ')
 }
 
+function buildStarText(value) {
+  const rating = Math.min(Math.max(Number(value) || 0, 0), 5)
+  return `${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}`
+}
+
 function getProfileId(user) {
   if (!user?.profile) {
     return null
@@ -751,26 +756,48 @@ function RecipeShowPage({ user }) {
 
   if (!recipe) {
     return (
-      <section>
-        <h1>{notFound ? 'Recipe not found.' : 'Loading recipe...'}</h1>
-      </section>
+      <main className="recipe-show-page">
+        <section className="recipe-shell recipe-shell--status">
+          <h1>{notFound ? 'Recipe not found.' : 'Loading recipe...'}</h1>
+        </section>
+      </main>
     )
   }
 
   return (
-    <>
-      <section>
+    <main className="recipe-show-page">
+      <section className="recipe-shell">
         <div className="recipe-header">
           <h1>{recipe.name}</h1>
-          <img src={recipe.imageUrl} alt={recipe.name} />
+          <img
+            src={recipe.imageUrl || '/assets/images/logo-images/logo.png'}
+            alt={recipe.name}
+          />
         </div>
-        <p id="author">From the kitchen of {recipe.owner?.name || 'Unknown'}...</p>
-        {recipe.description ? <p>{recipe.description}</p> : null}
-        <p>Meal Category: {titleize(recipe.mealCategory || 'other')}</p>
-        <p>Cuisine: {titleize(recipe.cuisineType || 'other')}</p>
-        {recipe.servings ? <p>Servings: {recipe.servings}</p> : null}
+        <p id="author" className="recipe-author">
+          From the kitchen of {recipe.owner?.name || 'Unknown'}
+        </p>
+        {recipe.description ? (
+          <p className="recipe-description">{recipe.description}</p>
+        ) : null}
+        <div className="recipe-meta-grid">
+          <p>
+            <span>Meal Category</span>
+            {titleize(recipe.mealCategory || 'other')}
+          </p>
+          <p>
+            <span>Cuisine</span>
+            {titleize(recipe.cuisineType || 'other')}
+          </p>
+          {recipe.servings ? (
+            <p>
+              <span>Servings</span>
+              {recipe.servings}
+            </p>
+          ) : null}
+        </div>
         <div className="servings-adjuster">
-          <label htmlFor="servings-adjust-input">Adjust Servings:</label>
+          <label htmlFor="servings-adjust-input">Adjust Servings</label>
           <input
             id="servings-adjust-input"
             type="number"
@@ -826,7 +853,7 @@ function RecipeShowPage({ user }) {
           <p className="save-servings-success">{saveServingsSuccess}</p>
         ) : null}
         {recipe.sourceUrl ? (
-          <p>
+          <p className="recipe-source">
             Original Source:{' '}
             <a href={recipe.sourceUrl} target="_blank" rel="noreferrer">
               {recipe.sourceUrl}
@@ -834,29 +861,37 @@ function RecipeShowPage({ user }) {
           </p>
         ) : null}
         <div className="time">
-          <h2 id="prep-time">Prep Time: {recipe.prepTime}</h2>
-          <hr />
-          <h2 id="total-time">Total Time: {recipe.totalTime}</h2>
-          <hr />
-          <h2 id="cook-time">Cook Time: {recipe.cookTime}</h2>
+          <div className="time-item">
+            <h2 id="prep-time">Prep</h2>
+            <p>{recipe.prepTime} min</p>
+          </div>
+          <div className="time-item">
+            <h2 id="total-time">Total</h2>
+            <p>{recipe.totalTime} min</p>
+          </div>
+          <div className="time-item">
+            <h2 id="cook-time">Cook</h2>
+            <p>{recipe.cookTime} min</p>
+          </div>
         </div>
-        <hr />
         <div className="recipe-content">
           <div className="ingredients">
-            <h2>Ingredients: </h2>
+            <h2>Ingredients</h2>
             <ul className="ingredients-list">
               {displayedIngredients.map((ingredient, index) => (
-                <li key={`${ingredient}-${index}`}>{ingredient}</li>
+                <li key={`${ingredient}-${index}`} className="ingredient-item">
+                  {ingredient}
+                </li>
               ))}
             </ul>
           </div>
           <div className="preparation">
-            <h2>Preparation:</h2>
-            <ol>
+            <h2>Preparation</h2>
+            <ol className="preparation-list">
               {(recipe.preparation || []).map((step, index) => (
-                <li key={`${step}-${index}`}>
-                  <strong>Step {index + 1}:</strong>
-                  {step}
+                <li key={`${step}-${index}`} className="prep-step">
+                  <span className="prep-step-number">Step {index + 1}</span>
+                  <p>{step}</p>
                 </li>
               ))}
             </ol>
@@ -868,75 +903,49 @@ function RecipeShowPage({ user }) {
         <div className="change-btns">
           <Link to={`/recipes/${recipe._id}/edit`}>
             <button className="btn" type="button">
-              Edit this Recipe 🧑‍🍳🚧
+              Edit Recipe
             </button>
           </Link>
           <button className="btn" type="button" onClick={handleDeleteRecipe}>
-            Delete this recipe 💀
+            Delete Recipe
           </button>
         </div>
       ) : null}
 
-      <section className="reviews">
-        <hr />
+      <section className="recipe-shell reviews">
         <h2>Recommended Reviews</h2>
         {averageRating ? (
-          <span className="average-rating">
-            <p>Average Rating: {averageRating}</p>
-          </span>
+          <p className="average-rating">
+            Average Rating: {averageRating} / 5 ({buildStarText(Math.round(Number(averageRating)))})
+          </p>
         ) : (
           <p id="leave-review">No reviews yet. Be the first to leave a review!</p>
         )}
         {user ? (
           <form id="add-review-form" onSubmit={handleReviewSubmit}>
             <div className="star-rating">
-              <label htmlFor="rating">Your Rating:</label>
+              <label htmlFor="rating">Your Rating</label>
               <fieldset id="rating">
-                <input
-                  type="radio"
-                  id="star5"
-                  name="rating"
-                  value="5"
-                  checked={newReview.rating === 5}
-                  onChange={() => setNewReview((current) => ({ ...current, rating: 5 }))}
-                />
-                <label htmlFor="star5">★</label>
-                <input
-                  type="radio"
-                  id="star4"
-                  name="rating"
-                  value="4"
-                  checked={newReview.rating === 4}
-                  onChange={() => setNewReview((current) => ({ ...current, rating: 4 }))}
-                />
-                <label htmlFor="star4">★</label>
-                <input
-                  type="radio"
-                  id="star3"
-                  name="rating"
-                  value="3"
-                  checked={newReview.rating === 3}
-                  onChange={() => setNewReview((current) => ({ ...current, rating: 3 }))}
-                />
-                <label htmlFor="star3">★</label>
-                <input
-                  type="radio"
-                  id="star2"
-                  name="rating"
-                  value="2"
-                  checked={newReview.rating === 2}
-                  onChange={() => setNewReview((current) => ({ ...current, rating: 2 }))}
-                />
-                <label htmlFor="star2">★</label>
-                <input
-                  type="radio"
-                  id="star1"
-                  name="rating"
-                  value="1"
-                  checked={newReview.rating === 1}
-                  onChange={() => setNewReview((current) => ({ ...current, rating: 1 }))}
-                />
-                <label htmlFor="star1">★</label>
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <span key={`star-${value}`} className="star-option">
+                    <input
+                      type="radio"
+                      id={`star${value}`}
+                      name="rating"
+                      value={String(value)}
+                      checked={newReview.rating === value}
+                      onChange={() =>
+                        setNewReview((current) => ({ ...current, rating: value }))
+                      }
+                    />
+                    <label
+                      htmlFor={`star${value}`}
+                      className={newReview.rating >= value ? 'active' : ''}
+                    >
+                      ★
+                    </label>
+                  </span>
+                ))}
               </fieldset>
             </div>
             <textarea
@@ -951,13 +960,12 @@ function RecipeShowPage({ user }) {
                 }))
               }
             />
-            <br />
             <button type="submit" className="submit-review-btn">
               Submit Review
             </button>
           </form>
         ) : (
-          <p>Please log in to leave a review.</p>
+          <p className="review-login-hint">Please log in to leave a review.</p>
         )}
         {recipe.reviews?.length ? (
           <div className="review-cards">
@@ -971,11 +979,13 @@ function RecipeShowPage({ user }) {
 
               return (
                 <div key={review._id} className="review-card">
-                  <header>
-                    <h4>{review.content}</h4>
-                    <p>{review.author?.name || 'Anonymous'}</p>
+                  <header className="review-card-header">
+                    <p className="review-author">{review.author?.name || 'Anonymous'}</p>
+                    <p className="review-rating">{buildStarText(review.rating)}</p>
                   </header>
-                  <div className="review-rating">Rating: {review.rating}</div>
+                  <p className="review-content">
+                    {review.content || 'No written notes provided.'}
+                  </p>
                   <p className="review-date">
                     {new Date(review.createdAt).toLocaleDateString()}
                   </p>
@@ -1001,7 +1011,7 @@ function RecipeShowPage({ user }) {
           </div>
         ) : null}
       </section>
-    </>
+    </main>
   )
 }
 

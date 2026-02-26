@@ -36,7 +36,7 @@ function EditReviewPage({ user, sessionLoading }) {
 
   if (sessionLoading && !user) {
     return (
-      <section>
+      <section className="recipe-shell review-edit-page">
         <h1>Loading...</h1>
       </section>
     )
@@ -58,9 +58,9 @@ function EditReviewPage({ user, sessionLoading }) {
   }
 
   return (
-    <section>
+    <section className="recipe-shell review-edit-page">
       <h1>Edit your review!</h1>
-      <form onSubmit={handleSubmit}>
+      <form className="review-edit-form" onSubmit={handleSubmit}>
         <label htmlFor="content-textarea">Review:</label>
         <textarea
           name="content"
@@ -83,7 +83,7 @@ function EditReviewPage({ user, sessionLoading }) {
           <option value="5">5</option>
         </select>
 
-        <button type="submit">Update Review</button>
+        <button className="submit-review-btn" type="submit">Update Review</button>
       </form>
     </section>
   )
