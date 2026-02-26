@@ -1,0 +1,7 @@
+/* Client public fallback for /stylesheets/style.css */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}

@@ -36,6 +36,30 @@ const WORD_NUMBERS = {
   twelve: 12,
 }
 
+const ACTION_VERB_PATTERN =
+  /^(?:preheat|heat|cook|add|stir|mix|combine|whisk|bake|roast|grill|smoke|bring|reduce|season|serve|rest|slice|remove|drain|simmer|boil|saute|marinate|flip|cover|uncover|transfer)\b/i
+
+const NON_INGREDIENT_HINT_PATTERN =
+  /\b(?:temp(?:erature)?|internal|target|ideal|rule of thumb|tip:|tips:|guide|preheat|smoker|setup|resting|timing|doneness|optional reverse-sear|time & temp)\b/i
+
+const DEGREE_PATTERN = /\b\d{2,3}\s*°\s*[fc]?\b|\b\d{2,3}\s*[fc]\b/i
+
+const AMOUNT_TOKEN_PATTERN =
+  '\\d+\\s+\\d+/\\d+|\\d+/\\d+|\\d+(?:\\.\\d+)?|[¼½¾⅓⅔⅛⅜⅝⅞]|a|an|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve'
+
+const INGREDIENT_UNIT_PATTERN =
+  'cups?|cup|tablespoons?|tbsp|tbs|teaspoons?|tsp|pounds?|lbs?|lb|ounces?|oz|grams?|g|kilograms?|kgs?|kg|milliliters?|ml|liters?|l|cloves?|cans?|packages?|pkgs?|sticks?|slices?|pinch(?:es)?|dash(?:es)?|sprigs?|bunch(?:es)?|heads?|stalks?|fillets?|pieces?'
+
+const MEASURED_INGREDIENT_PATTERN = new RegExp(
+  `^(?:about\\s+|approximately\\s+|around\\s+)?(?:${AMOUNT_TOKEN_PATTERN})(?:\\s*(?:-|to)\\s*(?:${AMOUNT_TOKEN_PATTERN}))?\\s+(?:${INGREDIENT_UNIT_PATTERN})\\b`,
+  'i'
+)
+
+const UNIT_LESS_INGREDIENT_PATTERN = new RegExp(
+  `^(?:about\\s+|approximately\\s+|around\\s+)?(?:${AMOUNT_TOKEN_PATTERN})(?:\\s*(?:-|to)\\s*(?:${AMOUNT_TOKEN_PATTERN}))?\\s+(?:small|medium|large)?\\s*[a-z][a-z\\s\\-']+$`,
+  'i'
+)
+
 function stripMarkdown(line) {
   return String(line || '')
     .replace(/\r/g, '')
@@ -57,10 +81,70 @@ function isMatchingHeader(line, patterns) {
 
 function cleanListLine(line) {
   return stripMarkdown(line)
-    .replace(/^\s*[-*+]\s+/, '')
+    .replace(/^\s*[-*+•]\s+/, '')
     .replace(/^\s*\d+\s*[\).:-]\s+/, '')
     .replace(/^\s*step\s*\d+\s*[:.-]?\s*/i, '')
     .trim()
+}
+
+function isLikelyInstructionContent(line) {
+  const normalized = cleanListLine(line)
+  if (!normalized) {
+    return false
+  }
+
+  if (looksLikeInstructionLine(normalized)) {
+    return true
+  }
+
+  return ACTION_VERB_PATTERN.test(normalized)
+}
+
+function looksLikeIngredientLine(line) {
+  const normalized = cleanListLine(line)
+  if (!normalized) {
+    return false
+  }
+  const wordCount = normalized.split(/\s+/).length
+
+  if (
+    looksLikeMetadataLine(normalized) ||
+    isMatchingHeader(normalized, INGREDIENT_HEADER_PATTERNS) ||
+    isMatchingHeader(normalized, INSTRUCTION_HEADER_PATTERNS) ||
+    isMatchingHeader(normalized, STOP_HEADER_PATTERNS)
+  ) {
+    return false
+  }
+
+  if (looksLikeInstructionLine(normalized) || ACTION_VERB_PATTERN.test(normalized)) {
+    return false
+  }
+
+  if (
+    NON_INGREDIENT_HINT_PATTERN.test(normalized) ||
+    DEGREE_PATTERN.test(normalized) ||
+    /[→]/.test(normalized)
+  ) {
+    return false
+  }
+
+  if (MEASURED_INGREDIENT_PATTERN.test(normalized) || /^(?:pinch|dash)\b/i.test(normalized)) {
+    return true
+  }
+
+  if ((/[.!?]/.test(normalized) && wordCount > 6) || wordCount > 10) {
+    return false
+  }
+
+  if (UNIT_LESS_INGREDIENT_PATTERN.test(normalized) && wordCount <= 6) {
+    return true
+  }
+
+  if (/\b(?:to taste|for garnish|as needed|optional)\b/i.test(normalized)) {
+    return true
+  }
+
+  return false
 }
 
 function parseDurationToMinutes(value) {
@@ -174,15 +258,28 @@ function extractSection(lines, startIndex, endIndex) {
   return unique(cleaned)
 }
 
+function extractIngredientSection(lines, startIndex, endIndex) {
+  const sectionLines = extractSection(lines, startIndex, endIndex)
+  if (!sectionLines.length) {
+    return []
+  }
+
+  const filtered = sectionLines.filter((line) => {
+    if (looksLikeIngredientLine(line)) {
+      return true
+    }
+
+    return !isLikelyInstructionContent(line) && !NON_INGREDIENT_HINT_PATTERN.test(line)
+  })
+
+  return unique(filtered)
+}
+
 function extractFallbackIngredients(lines) {
   const candidates = lines
     .map(stripMarkdown)
     .filter(Boolean)
-    .filter(
-      (line) =>
-        /^(\d+|\d+\/\d+|\d+\s+\d+\/\d+|½|¼|¾|⅓|⅔|⅛|⅜|⅝|⅞|a|an)\b/i.test(line) ||
-        /^(pinch|dash)\b/i.test(line)
-    )
+    .filter((line) => looksLikeIngredientLine(line))
     .map(cleanListLine)
 
   return unique(candidates)
@@ -206,14 +303,40 @@ function extractFallbackInstructions(lines) {
     return unique(numbered)
   }
 
+  const bulletSteps = lines
+    .filter((line) => /^\s*[-*+•]\s+/.test(String(line || '')))
+    .map(cleanListLine)
+    .filter(Boolean)
+    .filter((line) => !looksLikeIngredientLine(line))
+    .filter((line) => isLikelyInstructionContent(line))
+
+  if (bulletSteps.length) {
+    return unique(bulletSteps)
+  }
+
+  const lineBased = lines
+    .map(cleanListLine)
+    .filter(Boolean)
+    .filter((line) => !looksLikeMetadataLine(line))
+    .filter((line) => !isMatchingHeader(line, INGREDIENT_HEADER_PATTERNS))
+    .filter((line) => !isMatchingHeader(line, INSTRUCTION_HEADER_PATTERNS))
+    .filter((line) => !isMatchingHeader(line, STOP_HEADER_PATTERNS))
+    .filter((line) => !looksLikeIngredientLine(line))
+    .filter((line) => isLikelyInstructionContent(line))
+
+  if (lineBased.length) {
+    return unique(lineBased)
+  }
+
   const paragraph = lines
     .map(stripMarkdown)
     .filter(Boolean)
     .join(' ')
   const sentenceSplit = paragraph
-    .split(/\.(?=\s+[A-Z])/)
+    .split(/(?<=[.!?])\s+|(?<=:)\s+(?=[A-Z])/)
     .map((sentence) => sentence.trim())
-    .filter((sentence) => sentence.length > 12)
+    .filter((sentence) => sentence.length > 8)
+    .filter((sentence) => !looksLikeIngredientLine(sentence))
     .slice(0, 10)
 
   return unique(sentenceSplit)
@@ -339,7 +462,7 @@ function parseRecipeFromText(rawText) {
     ? Math.min(...sectionBoundaryIndexes)
     : -1
   const ingredients = ingredientsHeaderIndex >= 0
-    ? extractSection(lines, ingredientsHeaderIndex, ingredientsEndIndex)
+    ? extractIngredientSection(lines, ingredientsHeaderIndex, ingredientsEndIndex)
     : extractFallbackIngredients(lines)
 
   const instructionsEndIndex = stopHeaderIndex

@@ -42,6 +42,72 @@ Instructions:
   }
 
   {
+    const result = parseRecipeFromText(`
+## Garlic Butter Pasta
+Servings: 2
+Prep Time: 10 minutes
+Cook Time: 15 minutes
+
+### Ingredients
+- 8 oz spaghetti
+- 2 tbsp butter
+- 3 cloves garlic, minced
+- Salt and pepper to taste
+
+### Directions
+- Boil pasta in salted water until al dente.
+- Melt butter and cook garlic for 30 seconds.
+- Toss pasta with garlic butter and season to taste.
+`)
+
+    assert(result.ingredients.length >= 3, 'ChatGPT-style ingredient bullets should parse')
+    assert(
+      result.preparation.length >= 2,
+      'ChatGPT-style bullet directions should parse into preparation steps'
+    )
+  }
+
+  {
+    const result = parseRecipeFromText(`
+Quick Eggs
+2 eggs
+1 tbsp butter
+Heat a nonstick pan over medium heat.
+Add butter and let it melt.
+Cook eggs until set.
+`)
+
+    assert(
+      result.ingredients.includes('2 eggs') && result.ingredients.includes('1 tbsp butter'),
+      'Fallback should parse unitless and measured ingredient lines'
+    )
+    assert(result.preparation.length >= 2, 'Fallback should parse instruction-style lines')
+  }
+
+  {
+    let threw = false
+    try {
+      parseRecipeFromText(`
+Smoked Tri-Tip: Time & Temp Guide
+
+A typical 2-3 lb tri-tip usually lands right in that window.
+125°F = rare
+130-135°F = medium-rare
+140°F = medium
+
+Rule of thumb: ~30-40 minutes per pound.
+`)
+    } catch (err) {
+      threw = /Could not find ingredients/i.test(String(err.message || ''))
+    }
+
+    assert(
+      threw,
+      'Non-recipe guides should not parse as valid ingredient lists'
+    )
+  }
+
+  {
     let threw = false
     try {
       parseRecipeFromText('   ')
