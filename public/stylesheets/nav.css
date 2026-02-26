@@ -41,10 +41,31 @@
   gap: 10px;
 }
 
+.nav-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 68px;
+  border-radius: 14px;
+  border: 1px solid rgba(30, 52, 70, 0.2);
+  background: linear-gradient(145deg, #2a3e52 0%, #34495f 100%);
+  box-shadow: 0 7px 16px rgba(31, 47, 63, 0.22);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
 .nav-logo img {
-  max-height: 3.9rem;
-  width: auto;
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 11px;
   display: block;
+  filter: contrast(1.08) saturate(1.05) brightness(1.05);
+}
+
+.nav-logo:hover {
+  box-shadow: 0 10px 20px rgba(31, 47, 63, 0.28);
 }
 
 .nav-btn {
@@ -238,8 +259,16 @@
     border-radius: 14px;
   }
 
+  .nav-logo {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+  }
+
   .nav-logo img {
-    max-height: 3.1rem;
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
   }
 
   .user-actions {
