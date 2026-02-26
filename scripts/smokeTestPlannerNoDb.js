@@ -1,6 +1,8 @@
 import * as plannerCtrl from '../controllers/planner.js'
 import { MealPlan } from '../models/mealPlan.js'
 import { Recipe } from '../models/recipe.js'
+import { Profile } from '../models/profile.js'
+import { Library } from '../models/library.js'
 
 function assert(condition, message) {
   if (!condition) {
@@ -101,10 +103,15 @@ function makePlanKey(owner, weekStart) {
 
 const recipesById = new Map()
 const plansByKey = new Map()
+const profilesById = new Map()
+const librariesByOwner = new Map()
 
 const originalFindById = Recipe.findById
+const originalFind = Recipe.find
 const originalMealPlanFindOne = MealPlan.findOne
 const originalMealPlanCreate = MealPlan.create
+const originalProfileFindById = Profile.findById
+const originalLibraryFindOne = Library.findOne
 
 async function run() {
   try {
@@ -113,14 +120,19 @@ async function run() {
       name: 'Public Test Soup',
       owner: 'owner-a',
       visibility: 'public',
-      ingredients: ['1 cup rice', '2 carrots', '1 tbsp butter'],
+      ingredients: [
+        '1 lb chicken breast',
+        '500 g chicken breast',
+        '2 bunch cilantro',
+        '1 cup rice',
+      ],
     })
     recipesById.set('recipe-private-owner', {
       _id: 'recipe-private-owner',
       name: 'Private Owner Recipe',
       owner: 'owner-a',
       visibility: 'private',
-      ingredients: '1 cup quinoa, 1 onion, 2 cloves garlic',
+      ingredients: '1 kg carrots, 2 lb carrots, 1 bunch cilantro, 2 cloves garlic',
     })
     recipesById.set('recipe-private-other', {
       _id: 'recipe-private-other',
@@ -130,7 +142,99 @@ async function run() {
       ingredients: ['1 lb chicken', '2 tbsp oil'],
     })
 
+    profilesById.set('owner-a', {
+      _id: 'owner-a',
+      groceryPreferences: {
+        weightUnit: 'lb',
+        volumeUnit: 'cup',
+      },
+      async save() {
+        profilesById.set(String(this._id), this)
+        return this
+      },
+    })
+
+    librariesByOwner.set('owner-a', {
+      owner: 'owner-a',
+      favoriteRecipeIds: ['recipe-public-1'],
+    })
+
     Recipe.findById = async (id) => recipesById.get(String(id)) || null
+    Recipe.find = (filter = {}) => {
+      const ownerFilterValue = Array.isArray(filter.$or)
+        ? filter.$or.find((entry) => entry.owner)?.owner
+        : null
+
+      const filtered = [...recipesById.values()].filter((recipe) => {
+        const ownerMatch = String(recipe.owner) === String(ownerFilterValue || '')
+        const visibleMatch = filter.$or
+          ? recipe.visibility !== 'private' || ownerMatch
+          : true
+        if (!visibleMatch) {
+          return false
+        }
+
+        if (filter.mealCategory && recipe.mealCategory !== filter.mealCategory) {
+          return false
+        }
+
+        if (filter.cuisineType && recipe.cuisineType !== filter.cuisineType) {
+          return false
+        }
+
+        if (
+          filter.totalTime &&
+          Number.isFinite(filter.totalTime.$lte) &&
+          Number(recipe.totalTime || 0) > Number(filter.totalTime.$lte)
+        ) {
+          return false
+        }
+
+        return true
+      })
+
+      return {
+        select() {
+          return Promise.resolve(filtered)
+        },
+        then(resolve, reject) {
+          return Promise.resolve(filtered).then(resolve, reject)
+        },
+        catch(reject) {
+          return Promise.resolve(filtered).catch(reject)
+        },
+      }
+    }
+
+    Profile.findById = (id) => {
+      const profile = profilesById.get(String(id)) || null
+      return {
+        select() {
+          return Promise.resolve(profile)
+        },
+        then(resolve, reject) {
+          return Promise.resolve(profile).then(resolve, reject)
+        },
+        catch(reject) {
+          return Promise.resolve(profile).catch(reject)
+        },
+      }
+    }
+
+    Library.findOne = (filter) => {
+      const library = librariesByOwner.get(String(filter.owner)) || null
+      return {
+        select() {
+          return Promise.resolve(library)
+        },
+        then(resolve, reject) {
+          return Promise.resolve(library).then(resolve, reject)
+        },
+        catch(reject) {
+          return Promise.resolve(library).catch(reject)
+        },
+      }
+    }
 
     MealPlan.findOne = (filter) => {
       const key = makePlanKey(filter.owner, filter.weekStart)
@@ -191,6 +295,21 @@ async function run() {
           weekStart: '2026-02-23',
           dateKey: '2026-02-24',
           slot: 'lunch',
+          recipeId: 'recipe-public-1',
+        },
+      })
+      const res = makeRes()
+      await plannerCtrl.upsertEntry(req, res)
+      assert(res.statusCode === 200, 'Upsert should succeed for public recipe')
+      assert((res.body?.mealPlan?.entries || []).length === 2, 'Missing second upserted entry')
+    }
+
+    {
+      const req = makeReq('owner-a', {
+        body: {
+          weekStart: '2026-02-23',
+          dateKey: '2026-02-24',
+          slot: 'lunch',
           recipeId: 'recipe-private-other',
         },
       })
@@ -208,6 +327,33 @@ async function run() {
       assert(res.statusCode === 200, 'Grocery should return 200')
       const items = res.body?.items || []
       assert(items.length >= 3, 'Packed ingredient strings were not split into items')
+      const chickenItems = items.filter((item) =>
+        String(item.name || '').toLowerCase().includes('chicken')
+      )
+      assert(
+        chickenItems.length === 1,
+        'Duplicate meat ingredients should merge across weight units'
+      )
+      assert(
+        /lb/i.test(String(chickenItems[0].quantityText || '')),
+        'Meat quantities should normalize to lb'
+      )
+      const carrotItem = items.find((item) =>
+        String(item.name || '').toLowerCase().includes('carrot')
+      )
+      assert(carrotItem, 'Expected carrots to appear in grocery list')
+      assert(
+        /lb/i.test(String(carrotItem.quantityText || '')),
+        'Produce weight quantities should normalize to lb'
+      )
+      const cilantroItem = items.find((item) =>
+        String(item.name || '').toLowerCase().includes('cilantro')
+      )
+      assert(cilantroItem, 'Expected cilantro to appear in grocery list')
+      assert(
+        /bunch/i.test(String(cilantroItem.quantityText || '')),
+        'Produce bunch quantities should keep bunch units'
+      )
       assert(
         items.every((item) => String(item.name || '').length <= 72),
         'Ingredient display names should be shortened'
@@ -216,6 +362,58 @@ async function run() {
         Object.keys(res.body?.groupedItems || {}).length > 0,
         'Grocery grouped aisles should be populated'
       )
+    }
+
+    {
+      const req = makeReq('owner-a')
+      const res = makeRes()
+      await plannerCtrl.preferences(req, res)
+      assert(res.statusCode === 200, 'Preferences should return 200')
+      assert(
+        res.body?.groceryPreferences?.weightUnit === 'lb' &&
+          res.body?.groceryPreferences?.volumeUnit === 'cup',
+        'Preferences payload should include normalized units'
+      )
+    }
+
+    {
+      const req = makeReq('owner-a', {
+        body: {
+          groceryPreferences: {
+            weightUnit: 'kg',
+            volumeUnit: 'ml',
+          },
+        },
+      })
+      const res = makeRes()
+      await plannerCtrl.updatePreferences(req, res)
+      assert(res.statusCode === 200, 'Preference update should return 200')
+      assert(
+        res.body?.groceryPreferences?.weightUnit === 'kg' &&
+          res.body?.groceryPreferences?.volumeUnit === 'ml',
+        'Preference update should persist normalized values'
+      )
+    }
+
+    {
+      const req = makeReq('owner-a', {
+        body: {
+          weekStart: '2026-02-23',
+          goals: {
+            cuisineType: '',
+            mealCategory: '',
+            maxTotalTime: 60,
+            prioritizeFavorites: true,
+            favoritesOnly: false,
+            overwriteExisting: false,
+            slots: ['snack'],
+          },
+        },
+      })
+      const res = makeRes()
+      await plannerCtrl.autofillWeek(req, res)
+      assert(res.statusCode === 200, 'Autofill should return 200')
+      assert(Number(res.body?.filledCount || 0) > 0, 'Autofill should fill at least one slot')
     }
 
     {
@@ -229,7 +427,14 @@ async function run() {
       const res = makeRes()
       await plannerCtrl.removeEntry(req, res)
       assert(res.statusCode === 200, 'Remove entry should return 200')
-      assert((res.body?.mealPlan?.entries || []).length === 0, 'Entry should be removed')
+      const remainingEntries = res.body?.mealPlan?.entries || []
+      const stillHasDinner = remainingEntries.some(
+        (entry) => entry.dateKey === '2026-02-24' && entry.slot === 'dinner'
+      )
+      assert(
+        !stillHasDinner,
+        'Dinner entry should be removed while other entries may remain'
+      )
     }
 
     {
@@ -251,8 +456,11 @@ async function run() {
     console.log('Planner smoke tests passed.')
   } finally {
     Recipe.findById = originalFindById
+    Recipe.find = originalFind
     MealPlan.findOne = originalMealPlanFindOne
     MealPlan.create = originalMealPlanCreate
+    Profile.findById = originalProfileFindById
+    Library.findOne = originalLibraryFindOne
   }
 }
 

@@ -5,9 +5,47 @@ import { api } from '../services/api'
 
 const MEAL_SLOTS = ['breakfast', 'lunch', 'dinner', 'snack']
 const APPLE_REMINDERS_SHORTCUT_NAME = 'Tasty Trove Grocery to Reminders'
+const MEAL_CATEGORY_OPTIONS = [
+  '',
+  'breakfast',
+  'lunch',
+  'dinner',
+  'snack',
+  'appetizer',
+  'side',
+  'dessert',
+  'drink',
+  'soup',
+  'salad',
+  'sauce',
+  'other',
+]
+const CUISINE_OPTIONS = [
+  '',
+  'american',
+  'mexican',
+  'italian',
+  'chinese',
+  'japanese',
+  'indian',
+  'thai',
+  'french',
+  'greek',
+  'mediterranean',
+  'korean',
+  'vietnamese',
+  'middle eastern',
+  'spanish',
+  'other',
+]
 
 function getGroceryItemKey(aisle, item) {
-  return `${String(aisle)}::${String(item?.name || '')}::${String(item?.sample || '')}`
+  return [
+    String(aisle),
+    String(item?.name || ''),
+    String(item?.quantityText || ''),
+    String(item?.sample || ''),
+  ].join('::')
 }
 
 function toDateKey(date) {
@@ -51,9 +89,25 @@ function PlannerPage({ user, sessionLoading }) {
   const [loadingPlan, setLoadingPlan] = useState(true)
   const [loadingGrocery, setLoadingGrocery] = useState(false)
   const [plannerError, setPlannerError] = useState('')
+  const [plannerMessage, setPlannerMessage] = useState('')
   const [exportMessage, setExportMessage] = useState('')
   const [exportError, setExportError] = useState('')
   const [removedGroceryItemKeys, setRemovedGroceryItemKeys] = useState([])
+  const [groceryPreferences, setGroceryPreferences] = useState({
+    weightUnit: 'lb',
+    volumeUnit: 'cup',
+  })
+  const [savingPreferences, setSavingPreferences] = useState(false)
+  const [autofillBusy, setAutofillBusy] = useState(false)
+  const [autofillForm, setAutofillForm] = useState({
+    mealCategory: '',
+    cuisineType: '',
+    maxTotalTime: '',
+    favoritesOnly: false,
+    prioritizeFavorites: true,
+    overwriteExisting: false,
+    slots: [...MEAL_SLOTS],
+  })
 
   useEffect(() => {
     if (!user) {
@@ -65,17 +119,23 @@ function PlannerPage({ user, sessionLoading }) {
     async function loadPageData() {
       setLoadingPlan(true)
       setPlannerError('')
+      setPlannerMessage('')
 
       try {
-        const [planData, recipeData] = await Promise.all([
+        const [planData, recipeData, preferencesData] = await Promise.all([
           api.getMealPlan(weekStart),
           api.listRecipes(),
+          api.getPlannerPreferences(),
         ])
 
         if (!cancelled) {
           setMealPlan(planData.mealPlan || { entries: [] })
           setWeekDateKeys(planData.weekDateKeys || [])
           setAvailableRecipes(recipeData.recipes || [])
+          setGroceryPreferences({
+            weightUnit: preferencesData?.groceryPreferences?.weightUnit || 'lb',
+            volumeUnit: preferencesData?.groceryPreferences?.volumeUnit || 'cup',
+          })
         }
       } catch (err) {
         console.log(err)
@@ -136,8 +196,10 @@ function PlannerPage({ user, sessionLoading }) {
     const lines = []
     Object.entries(filteredGroceryByAisle).forEach(([aisle, items]) => {
       items.forEach((item) => {
-        const countSuffix = item.count > 1 ? ` (x${item.count})` : ''
-        lines.push(`[${aisle}] ${item.name}${countSuffix}`)
+        const quantitySuffix = item.quantityText ? ` (${item.quantityText})` : ''
+        const countSuffix =
+          !item.quantityText && item.count > 1 ? ` (x${item.count})` : ''
+        lines.push(`[${aisle}] ${item.name}${quantitySuffix}${countSuffix}`)
       })
     })
     return lines.join('\n')
@@ -162,6 +224,7 @@ function PlannerPage({ user, sessionLoading }) {
     }
 
     try {
+      setPlannerMessage('')
       const data = await api.upsertMealPlanEntry({
         weekStart,
         dateKey,
@@ -177,6 +240,7 @@ function PlannerPage({ user, sessionLoading }) {
 
   async function removeRecipe(dateKey, slot) {
     try {
+      setPlannerMessage('')
       const data = await api.removeMealPlanEntry({
         weekStart,
         dateKey,
@@ -192,6 +256,7 @@ function PlannerPage({ user, sessionLoading }) {
   async function generateGroceryList() {
     setLoadingGrocery(true)
     setPlannerError('')
+    setPlannerMessage('')
     setExportError('')
     setExportMessage('')
     setRemovedGroceryItemKeys([])
@@ -200,6 +265,12 @@ function PlannerPage({ user, sessionLoading }) {
       const data = await api.getPlannerGrocery(weekStart)
       setGroceryItems(data.items || [])
       setGroceryByAisle(data.groupedItems || {})
+      if (data.preferences) {
+        setGroceryPreferences({
+          weightUnit: data.preferences.weightUnit || 'lb',
+          volumeUnit: data.preferences.volumeUnit || 'cup',
+        })
+      }
     } catch (err) {
       console.log(err)
       setPlannerError(err.message || 'Unable to generate grocery list')
@@ -232,6 +303,88 @@ function PlannerPage({ user, sessionLoading }) {
     const current = new Date(`${weekStart}T00:00:00Z`)
     current.setUTCDate(current.getUTCDate() + 7)
     setWeekStart(toDateKey(current))
+  }
+
+  function handlePreferenceChange(field, value) {
+    setGroceryPreferences((current) => ({
+      ...current,
+      [field]: value,
+    }))
+  }
+
+  async function handleSavePreferences() {
+    setSavingPreferences(true)
+    setPlannerError('')
+    setPlannerMessage('')
+    try {
+      const data = await api.updatePlannerPreferences(groceryPreferences)
+      const nextPreferences = data?.groceryPreferences || groceryPreferences
+      setGroceryPreferences({
+        weightUnit: nextPreferences.weightUnit || 'lb',
+        volumeUnit: nextPreferences.volumeUnit || 'cup',
+      })
+      setPlannerMessage('Saved grocery unit preferences.')
+
+      if (groceryItems.length) {
+        const groceryData = await api.getPlannerGrocery(weekStart)
+        setGroceryItems(groceryData.items || [])
+        setGroceryByAisle(groceryData.groupedItems || {})
+      }
+    } catch (err) {
+      console.log(err)
+      setPlannerError(err.message || 'Unable to save grocery preferences')
+    } finally {
+      setSavingPreferences(false)
+    }
+  }
+
+  function handleAutofillField(field, value) {
+    setAutofillForm((current) => ({
+      ...current,
+      [field]: value,
+    }))
+  }
+
+  function handleToggleAutofillSlot(slot) {
+    setAutofillForm((current) => {
+      const hasSlot = current.slots.includes(slot)
+      return {
+        ...current,
+        slots: hasSlot
+          ? current.slots.filter((entry) => entry !== slot)
+          : [...current.slots, slot],
+      }
+    })
+  }
+
+  async function handleAutofillWeek() {
+    setAutofillBusy(true)
+    setPlannerError('')
+    setPlannerMessage('')
+    try {
+      const payload = {
+        weekStart,
+        goals: {
+          mealCategory: autofillForm.mealCategory,
+          cuisineType: autofillForm.cuisineType,
+          maxTotalTime: Number(autofillForm.maxTotalTime) || 0,
+          favoritesOnly: autofillForm.favoritesOnly,
+          prioritizeFavorites: autofillForm.prioritizeFavorites,
+          overwriteExisting: autofillForm.overwriteExisting,
+          slots: autofillForm.slots,
+        },
+      }
+
+      const data = await api.autofillMealPlan(payload)
+      setMealPlan(data.mealPlan || { entries: [] })
+      setWeekDateKeys(data.weekDateKeys || [])
+      setPlannerMessage(`Autofilled ${Number(data.filledCount || 0)} slot(s).`)
+    } catch (err) {
+      console.log(err)
+      setPlannerError(err.message || 'Unable to autofill this week')
+    } finally {
+      setAutofillBusy(false)
+    }
   }
 
   async function handleCopyApplePayload() {
@@ -392,7 +545,144 @@ function PlannerPage({ user, sessionLoading }) {
             Next Week
           </button>
         </div>
+        <div className="planner-pref-grid">
+          <div className="planner-pref-card">
+            <h3>Grocery Unit Preferences</h3>
+            <p>Set your default units for consolidated grocery totals.</p>
+            <div className="planner-pref-row">
+              <label htmlFor="weight-unit-select">Weight</label>
+              <select
+                id="weight-unit-select"
+                value={groceryPreferences.weightUnit}
+                onChange={(event) =>
+                  handlePreferenceChange('weightUnit', event.target.value)
+                }
+              >
+                <option value="lb">lb</option>
+                <option value="kg">kg</option>
+              </select>
+            </div>
+            <div className="planner-pref-row">
+              <label htmlFor="volume-unit-select">Volume</label>
+              <select
+                id="volume-unit-select"
+                value={groceryPreferences.volumeUnit}
+                onChange={(event) =>
+                  handlePreferenceChange('volumeUnit', event.target.value)
+                }
+              >
+                <option value="cup">cups / tbsp / tsp</option>
+                <option value="ml">ml / l</option>
+              </select>
+            </div>
+            <button
+              type="button"
+              onClick={handleSavePreferences}
+              disabled={savingPreferences}
+            >
+              {savingPreferences ? 'Saving...' : 'Save Unit Preferences'}
+            </button>
+          </div>
+          <div className="planner-pref-card">
+            <h3>Autofill Week</h3>
+            <p>Fill empty slots using category, cuisine, time, and favorites.</p>
+            <div className="planner-pref-row">
+              <label htmlFor="autofill-meal-category">Meal Category</label>
+              <select
+                id="autofill-meal-category"
+                value={autofillForm.mealCategory}
+                onChange={(event) =>
+                  handleAutofillField('mealCategory', event.target.value)
+                }
+              >
+                {MEAL_CATEGORY_OPTIONS.map((option) => (
+                  <option key={option || 'any'} value={option}>
+                    {option ? titleize(option) : 'Any'}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="planner-pref-row">
+              <label htmlFor="autofill-cuisine">Cuisine</label>
+              <select
+                id="autofill-cuisine"
+                value={autofillForm.cuisineType}
+                onChange={(event) =>
+                  handleAutofillField('cuisineType', event.target.value)
+                }
+              >
+                {CUISINE_OPTIONS.map((option) => (
+                  <option key={option || 'any-cuisine'} value={option}>
+                    {option ? titleize(option) : 'Any'}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="planner-pref-row">
+              <label htmlFor="autofill-max-time">Max Time (min)</label>
+              <input
+                id="autofill-max-time"
+                type="number"
+                min="0"
+                value={autofillForm.maxTotalTime}
+                onChange={(event) =>
+                  handleAutofillField('maxTotalTime', event.target.value)
+                }
+              />
+            </div>
+            <div className="planner-slot-toggle-row">
+              {MEAL_SLOTS.map((slot) => (
+                <label key={slot} className="planner-slot-toggle">
+                  <input
+                    type="checkbox"
+                    checked={autofillForm.slots.includes(slot)}
+                    onChange={() => handleToggleAutofillSlot(slot)}
+                  />
+                  <span>{titleize(slot)}</span>
+                </label>
+              ))}
+            </div>
+            <label className="planner-check-row">
+              <input
+                type="checkbox"
+                checked={autofillForm.prioritizeFavorites}
+                onChange={(event) =>
+                  handleAutofillField('prioritizeFavorites', event.target.checked)
+                }
+              />
+              <span>Prioritize favorites</span>
+            </label>
+            <label className="planner-check-row">
+              <input
+                type="checkbox"
+                checked={autofillForm.favoritesOnly}
+                onChange={(event) =>
+                  handleAutofillField('favoritesOnly', event.target.checked)
+                }
+              />
+              <span>Favorites only</span>
+            </label>
+            <label className="planner-check-row">
+              <input
+                type="checkbox"
+                checked={autofillForm.overwriteExisting}
+                onChange={(event) =>
+                  handleAutofillField('overwriteExisting', event.target.checked)
+                }
+              />
+              <span>Overwrite existing assignments</span>
+            </label>
+            <button
+              type="button"
+              onClick={handleAutofillWeek}
+              disabled={autofillBusy || !autofillForm.slots.length}
+            >
+              {autofillBusy ? 'Autofilling...' : 'Autofill Week'}
+            </button>
+          </div>
+        </div>
         {plannerError ? <p className="planner-error">{plannerError}</p> : null}
+        {plannerMessage ? <p className="planner-success">{plannerMessage}</p> : null}
       </section>
 
       <section className="planner-shell">
@@ -546,9 +836,15 @@ function PlannerPage({ user, sessionLoading }) {
               </header>
               <ul className="grocery-item-list">
                 {items.map((item) => (
-                  <li key={`${aisle}-${item.name}`} className="grocery-item-row">
+                  <li
+                    key={`${aisle}-${item.name}-${item.quantityText || item.sample || ''}`}
+                    className="grocery-item-row"
+                  >
                     <div className="grocery-item-content">
                       <strong className="grocery-item-name">{item.name}</strong>
+                      {item.quantityText ? (
+                        <p className="grocery-item-quantity">Total: {item.quantityText}</p>
+                      ) : null}
                       {item.sample ? (
                         <p className="grocery-item-sample">{item.sample}</p>
                       ) : null}
@@ -560,7 +856,7 @@ function PlannerPage({ user, sessionLoading }) {
                       ) : null}
                     </div>
                     <div className="grocery-item-actions">
-                      {item.count > 1 ? (
+                      {!item.quantityText && item.count > 1 ? (
                         <span className="grocery-item-count">x{item.count}</span>
                       ) : null}
                       <button

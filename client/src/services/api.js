@@ -223,6 +223,21 @@ const api = {
       body: JSON.stringify(payload),
     })
   },
+  getPlannerPreferences() {
+    return request('/api/planner/preferences')
+  },
+  updatePlannerPreferences(groceryPreferences) {
+    return request('/api/planner/preferences', {
+      method: 'PUT',
+      body: JSON.stringify({ groceryPreferences }),
+    })
+  },
+  autofillMealPlan(payload) {
+    return request('/api/planner/autofill', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  },
   getPlannerGrocery(weekStart) {
     const params = new URLSearchParams()
     if (String(weekStart || '').trim()) {

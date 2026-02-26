@@ -51,6 +51,77 @@ body {
   font-weight: 700;
 }
 
+.planner-pref-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 10px;
+}
+
+.planner-pref-card {
+  border: 1px solid #ddcfb7;
+  border-radius: 12px;
+  background: #fffefb;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.planner-pref-card h3 {
+  margin: 0;
+  color: #243d4b;
+  font-size: 1rem;
+}
+
+.planner-pref-card p {
+  margin: 0;
+  color: #60707b;
+  font-size: 0.84rem;
+}
+
+.planner-pref-row {
+  display: grid;
+  gap: 4px;
+}
+
+.planner-pref-row label {
+  color: #355260;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.planner-pref-row select,
+.planner-pref-row input {
+  border: 1px solid #cfbea2;
+  border-radius: 10px;
+  background: #fff;
+  color: #243d4b;
+  padding: 8px 10px;
+  font-size: 0.9rem;
+}
+
+.planner-slot-toggle-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.planner-slot-toggle,
+.planner-check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4f616e;
+  font-size: 0.84rem;
+}
+
+.planner-slot-toggle input,
+.planner-check-row input {
+  accent-color: #2f6466;
+}
+
 .planner-controls button,
 .planner-controls input,
 .planner-slot select,
@@ -296,6 +367,13 @@ body {
   color: #223c4a;
 }
 
+.grocery-item-quantity {
+  margin: 4px 0 0;
+  color: #2f6466;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .grocery-item-sample {
   margin: 4px 0 0;
   color: #62717b;
@@ -366,12 +444,18 @@ body {
   .planner-controls input,
   .planner-slot select,
   .planner-slot button,
-  .grocery-header button {
+  .grocery-header button,
+  .planner-pref-row select,
+  .planner-pref-row input {
     width: 100%;
   }
 
   .grocery-header-actions {
     width: 100%;
+  }
+
+  .planner-slot-toggle-row {
+    grid-template-columns: 1fr;
   }
 
   .slot-preview {
