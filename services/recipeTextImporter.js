@@ -188,10 +188,18 @@ function extractFallbackIngredients(lines) {
   return unique(candidates)
 }
 
+function looksLikeInstructionLine(line) {
+  const normalized = stripMarkdown(line)
+  return (
+    /^(?:step\s*)?\d+\s*[\).:-]\s*/i.test(normalized) ||
+    /^step\s*\d+\s*[:.-]?\s*/i.test(normalized)
+  )
+}
+
 function extractFallbackInstructions(lines) {
   const numbered = lines
     .map(stripMarkdown)
-    .filter((line) => /^\d+\s*[\).:-]\s*/.test(line))
+    .filter((line) => looksLikeInstructionLine(line))
     .map(cleanListLine)
 
   if (numbered.length) {
@@ -314,15 +322,22 @@ function parseRecipeFromText(rawText) {
   const ingredientsHeaderIndex = findHeaderIndex(lines, INGREDIENT_HEADER_PATTERNS)
   const instructionHeaderIndex = findHeaderIndex(lines, INSTRUCTION_HEADER_PATTERNS)
   const stopHeaderIndex = findHeaderIndex(lines, STOP_HEADER_PATTERNS)
+  const firstStepInstructionIndex = lines.findIndex((line) =>
+    looksLikeInstructionLine(line)
+  )
 
   const firstHeaderIndex = [ingredientsHeaderIndex, instructionHeaderIndex]
     .filter((index) => index >= 0)
     .sort((left, right) => left - right)[0]
 
-  const ingredientsEndIndex =
-    instructionHeaderIndex > ingredientsHeaderIndex
-      ? instructionHeaderIndex
-      : stopHeaderIndex
+  const sectionBoundaryIndexes = [
+    instructionHeaderIndex > ingredientsHeaderIndex ? instructionHeaderIndex : -1,
+    firstStepInstructionIndex > ingredientsHeaderIndex ? firstStepInstructionIndex : -1,
+    stopHeaderIndex,
+  ].filter((index) => index >= 0)
+  const ingredientsEndIndex = sectionBoundaryIndexes.length
+    ? Math.min(...sectionBoundaryIndexes)
+    : -1
   const ingredients = ingredientsHeaderIndex >= 0
     ? extractSection(lines, ingredientsHeaderIndex, ingredientsEndIndex)
     : extractFallbackIngredients(lines)

@@ -11,6 +11,7 @@
     "dev": "concurrently \"PORT=3001 npm run server:dev\" \"npm run client:dev\"",
     "recipes:classify": "node ./scripts/reclassifyRecipes.js",
     "smoke:planner": "node ./scripts/smokeTestPlannerNoDb.js",
+    "smoke:text-import": "node ./scripts/smokeTestRecipeTextImporter.js",
     "build": "npm run client:build",
     "start": "NODE_ENV=production node ./bin/www.js"
   },
