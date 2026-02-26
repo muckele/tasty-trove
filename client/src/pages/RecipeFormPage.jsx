@@ -6,6 +6,7 @@ import { api } from '../services/api'
 const initialForm = {
   name: '',
   imageUrl: '',
+  servings: '',
   totalTime: '',
   prepTime: '',
   cookTime: '',
@@ -42,6 +43,7 @@ function RecipeFormPage({ mode, user, sessionLoading }) {
           setForm({
             name: data.recipe.name || '',
             imageUrl: data.recipe.imageUrl || '',
+            servings: data.recipe.servings || '',
             totalTime: data.recipe.totalTime ?? '',
             prepTime: data.recipe.prepTime ?? '',
             cookTime: data.recipe.cookTime ?? '',
@@ -115,6 +117,7 @@ function RecipeFormPage({ mode, user, sessionLoading }) {
     const payload = {
       name: form.name,
       imageUrl: form.imageUrl,
+      servings: form.servings,
       totalTime: Number(form.totalTime) || 0,
       prepTime: Number(form.prepTime) || 0,
       cookTime: Number(form.cookTime) || 0,
@@ -175,6 +178,16 @@ function RecipeFormPage({ mode, user, sessionLoading }) {
         placeholder="https://example.com"
         value={form.imageUrl}
         onChange={(event) => setField('imageUrl', event.target.value)}
+      />
+
+      <label htmlFor="servings-input">Servings:</label>
+      <input
+        type="text"
+        name="servings"
+        id="servings-input"
+        placeholder="e.g. 4"
+        value={form.servings}
+        onChange={(event) => setField('servings', event.target.value)}
       />
 
       <label htmlFor="total-time-input">Total Time:</label>
